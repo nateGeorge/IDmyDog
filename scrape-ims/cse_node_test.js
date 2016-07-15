@@ -9,6 +9,7 @@
 const googleImages = require('google-images');
 var fs = require('fs');
 var request = require('request');
+var _ = require('underscore');
 
 var download = function(uri, filename, callback){
   request.head(uri, function(err, res, body){
@@ -31,9 +32,25 @@ fs.readFile('credentials.cred', 'utf8', function (err, data) {
   searchIm(cli, srch);
 });
 
+var saveIms = function(search, ims, pageNo) {
+	for(var i = 0; i <= ims.length-1; i++) {
+		console.log(search + '/' + search + String(pageNo) + '-' + String(i) + '.jpg');
+		download(ims[i]['url'], search + '/' + search + String(pageNo) + '-' + String(i) + '.jpg', function(){
+		  console.log('done');
+		});
+	}
+}
+
+//todo: add recursive function or something to loop through pages asynchronously
+
+var cntr = 0;
+var srch = function(client, search, pages, callback) {
+	client.search(search, {page: pages[cntr]}).then(function (images) {
+		saveIms(search, images, pages[cntr]);	
+	});
+}
 
 var searchIm = function(client, search) {
-
 	try {
 		fs.accessSync(search, fs.F_OK);
 		// Do something
@@ -43,21 +60,12 @@ var searchIm = function(client, search) {
 		fs.mkdir(search);
 		console.log('made new dir: ' + search);
 	}
-
-	//for(var j = 1; j <= 10; j++) {
+	
 	console.log('searching');
-	client.search(search).then(function (images) {
-		console.log(images);
-		console.log(images.length);
-			for(var i = 0; i <= images.length-1; i++) {
-				console.log(images[i]['url']);
-				console.log(search + '/' + search + String(j) + '-' + String(i) + '.jpg');
-				download(images[i]['url'], search + '/' + search + String(j) + '-' + String(i) + '.jpg', function(){
-				  console.log('done');
-				});
-			}
-	});
-	//}
+	var pages = _.range(1, 3);
+	
+	srch(client, search, pages);
+
 	console.log('searched');
 }
 // paginate results
