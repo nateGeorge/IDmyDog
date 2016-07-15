@@ -34,8 +34,7 @@ fs.readFile('credentials.cred', 'utf8', function (err, data) {
 
 var saveIms = function(search, ims, pageNo) {
 	for(var i = 0; i <= ims.length-1; i++) {
-		console.log(search + '/' + search + String(pageNo) + '-' + String(i) + '.jpg');
-		download(ims[i]['url'], search + '/' + search + String(pageNo) + '-' + String(i) + '.jpg', function(){
+		download(ims[i]['url'], 'images/' + search + '/' + search + String(pageNo) + '-' + String(i) + '.jpg', function(){
 		  console.log('done');
 		});
 	}
@@ -49,12 +48,12 @@ var srch = function(client, search, page) {
 
 var searchIm = function(client, search) {
 	try {
-		fs.accessSync(search, fs.F_OK);
+		fs.accessSync('images/' + search, fs.F_OK);
 		console.log('\'' + search + '\'' + ' dir exists');
 	} catch (e) {
 		// It isn't accessible
-		fs.mkdir(search);
-		console.log('made new dir: ' + search);
+		fs.mkdir('images/' + search);
+		console.log('made new dir: ' + 'images/' + search);
 	}
 	
 	console.log('searching');
