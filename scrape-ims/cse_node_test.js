@@ -41,19 +41,15 @@ var saveIms = function(search, ims, pageNo) {
 	}
 }
 
-//todo: add recursive function or something to loop through pages asynchronously
-
-var cntr = 0;
-var srch = function(client, search, pages, callback) {
-	client.search(search, {page: pages[cntr]}).then(function (images) {
-		saveIms(search, images, pages[cntr]);	
+var srch = function(client, search, page) {
+	client.search(search, {page: page}).then(function (images) {
+		saveIms(search, images, page);	
 	});
 }
 
 var searchIm = function(client, search) {
 	try {
 		fs.accessSync(search, fs.F_OK);
-		// Do something
 		console.log('\'' + search + '\'' + ' dir exists');
 	} catch (e) {
 		// It isn't accessible
@@ -62,19 +58,9 @@ var searchIm = function(client, search) {
 	}
 	
 	console.log('searching');
-	var pages = _.range(1, 3);
+	var pages = _.range(1, 5);
 	
-	srch(client, search, pages);
+	pages.forEach(function(e,i,a) {srch(client, search, e)});
 
 	console.log('searched');
 }
-// paginate results
-/*client.search('Steve Angello', {
-    page: 2
-});
-
-// search for certain size
-client.search('Steve Angello', {
-    size: 'large'
-});*/
-
