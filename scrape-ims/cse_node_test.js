@@ -19,7 +19,7 @@ var download = function(uri, filename, callback){
   });
 };
 
-fs.readFile('credentials', 'utf8', function (err, data) {
+fs.readFile('credentials.cred', 'utf8', function (err, data) {
   if (err) {
     return console.log(err);
   }
