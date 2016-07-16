@@ -4,6 +4,8 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
+
+# also http://stackoverflow.com/questions/18081997/scrapy-customize-image-pipeline-with-renaming-defualt-image-name
 from scrapy.pipelines.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 import scrapy
@@ -23,16 +25,6 @@ class DogImagePipeline(ImagesPipeline):
             print(image_url)
             #item['files']['path'] = item['breed']
             yield scrapy.Request(image_url)
-
-    '''
-    # default method from scapy tutorial
-    def item_completed(self, results, item, info):
-        image_paths = [x['path'] for ok, x in results if ok]
-        if not image_paths:
-            raise DropItem("Item contains no images")
-        item['image_paths'] = image_paths
-        return item
-    '''
     
     # from: http://stackoverflow.com/questions/28007995/how-to-download-scrapy-images-in-a-dyanmic-folder-based-on
     def item_completed(self, results, item, info):
@@ -41,12 +33,10 @@ class DogImagePipeline(ImagesPipeline):
             folder = item['breed'][0]
             filename = path.split('/')[1]
 
+            # http://doc.scrapy.org/en/latest/topics/practices.html#run-scrapy-from-a-script
             settings = get_project_settings()
             storage = settings.get('IMAGES_STORE')
 
-            '''print('storage:', storage)
-            print('folder:', folder)
-            print('basename:', os.path.basename(path))'''
             target_path = os.path.join(storage, folder, os.path.basename(path))
             path = os.path.join(storage, path)
             
@@ -56,14 +46,7 @@ class DogImagePipeline(ImagesPipeline):
             
             shutil.move(path, target_path)
             print('saving to:' + str(target_path))
-            
-            '''print('***************')
-            print('***************')
-            print('***************')
-            print('saving to:', path)
-
-            shutil.move(path, target_path)
 
         if self.IMAGES_RESULT_FIELD in item.fields:
-            item[self.IMAGES_RESULT_FIELD] = [x for ok, x in results if ok]'''
+            item[self.IMAGES_RESULT_FIELD] = [x for ok, x in results if ok]
         return item
