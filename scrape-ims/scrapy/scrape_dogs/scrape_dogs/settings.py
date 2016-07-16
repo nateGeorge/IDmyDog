@@ -8,6 +8,7 @@
 #     http://doc.scrapy.org/en/latest/topics/settings.html
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
+import logging
 
 BOT_NAME = 'scrape_dogs'
 
@@ -20,6 +21,8 @@ NEWSPIDER_MODULE = 'scrape_dogs.spiders'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
+
+#LOG_LEVEL = logging.WARNING
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -67,7 +70,11 @@ ROBOTSTXT_OBEY = True
 #ITEM_PIPELINES = {
 #    'scrape_dogs.pipelines.SomePipeline': 300,
 #}
-ITEM_PIPELINES = {'scrapy.pipelines.images.ImagesPipeline': 1}
+ITEM_PIPELINES = {'scrape_dogs.pipelines.DogImagePipeline': 1}
+
+IMAGES_STORE = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
+
+IMAGES_EXPIRES = 100 # don't download new images unless it's been x days since last dl
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html

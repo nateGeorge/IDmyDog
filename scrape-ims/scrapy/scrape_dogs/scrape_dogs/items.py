@@ -8,6 +8,8 @@
 import scrapy
     
 class AKCItem(scrapy.Item):
+    image_urls = scrapy.Field()
+    images = scrapy.Field()
     breed = scrapy.Field()
     link = scrapy.Field()
     desc = scrapy.Field()
