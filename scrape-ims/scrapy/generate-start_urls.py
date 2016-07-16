@@ -2,7 +2,7 @@
 import string
 import pickle as pk
 
-alph = list(string.ascii_lowercase)
+alph = list(string.ascii_uppercase)
 
 urls = []
 
