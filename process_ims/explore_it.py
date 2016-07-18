@@ -13,7 +13,7 @@ except IOError:
     imPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
     breeds = os.listdir(imPath)
     print(breeds)
-
+    
     pdDict = {}
     pdDict['picPaths'] = []
     pdDict['images'] = []
@@ -27,9 +27,9 @@ except IOError:
             pdDict['picPaths'].append(picPath)
             pdDict['images'].append(cv2.imread(picPath))
             pdDict['breed_labels'].append(breed)
-
+    
     breed_ims = pd.DataFrame(pdDict)
-
+    
     pickle.dump(breed_ims, open('breed_ims.pd.pk', 'wb'))
 
 # if not done downloading images, only want breeds with many ims
