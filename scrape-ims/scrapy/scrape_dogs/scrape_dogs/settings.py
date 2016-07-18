@@ -22,6 +22,7 @@ NEWSPIDER_MODULE = 'scrape_dogs.spiders'
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
 
+# http://doc.scrapy.org/en/latest/topics/logging.html#topics-logging-settings
 #LOG_LEVEL = logging.WARNING
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)

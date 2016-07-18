@@ -10,10 +10,24 @@ const googleImages = require('google-images');
 var fs = require('fs');
 var request = require('request');
 var _ = require('underscore');
+var path = require('path');
+
+function getDirectories(srcpath) {
+  return fs.readdirSync(srcpath).filter(function(file) {
+    return fs.statSync(path.join(srcpath, file)).isDirectory();
+  });
+}
+
+var dirs = getDirectories('/media/nate/Windows/github/IDmyDog/scrape-ims/images')
+
+dirs.pop('full')
 
 var download = function(uri, filename, callback){
   request.head(uri, function(err, res, body){
-    console.log('content-type:', res.headers['content-type']);
+    if (err) {
+		return console.log(err);
+	}
+	console.log('content-type:', res.headers['content-type']);
     console.log('content-length:', res.headers['content-length']);
 
     request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
@@ -28,8 +42,13 @@ fs.readFile('credentials.cred', 'utf8', function (err, data) {
   var cseID = lines[0];
   var apiKey = lines[1];
   let cli = googleImages(cseID, apiKey);
-  var srch = 'Bulldog';
-  searchIm(cli, srch);
+  //var srch = 'Bulldog';
+  var test = dirs.slice(6)
+  test.forEach(function(e,i,a) {
+	//setTimeout(console.log(e), i*1000);
+  	setTimeout(function() {searchIm(cli, e)}, i*25000);
+  });
+  
 });
 
 var saveIms = function(search, ims, pageNo) {
@@ -41,7 +60,8 @@ var saveIms = function(search, ims, pageNo) {
 }
 
 var srch = function(client, search, page) {
-	client.search(search, {page: page}).then(function (images) {
+	console.log('searching for: ' + search + ' breed');
+	client.search(search + ' breed', {page: page}).then(function (images) {
 		saveIms(search, images, page);	
 	});
 }
