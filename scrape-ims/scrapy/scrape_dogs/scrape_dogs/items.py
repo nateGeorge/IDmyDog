@@ -14,3 +14,10 @@ class AKCItem(scrapy.Item):
     link = scrapy.Field()
     desc = scrapy.Field()
     thumb = scrapy.Field()
+    
+class WikiItem(scrapy.Item):
+    image_urls = scrapy.Field()
+    images = scrapy.Field()
+    breed = scrapy.Field()
+    link = scrapy.Field()
+    desc = scrapy.Field()
