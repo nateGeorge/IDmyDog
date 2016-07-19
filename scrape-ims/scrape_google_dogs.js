@@ -27,10 +27,14 @@ var download = function(uri, filename, callback){
     if (err) {
 		return console.log(err);
 	}
-	console.log('content-type:', res.headers['content-type']);
-    console.log('content-length:', res.headers['content-length']);
+	//console.log('content-type:', res.headers['content-type']);
+    //console.log('content-length:', res.headers['content-length']);
 
-    request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
+    request(uri, function (error, response, body) {
+		  if (error) {
+			return console.log(error);
+		  }
+		}).pipe(fs.createWriteStream(filename)).on('close', callback);
   });
 };
 
@@ -42,17 +46,18 @@ fs.readFile('credentials.cred', 'utf8', function (err, data) {
   var cseID = lines[0];
   var apiKey = lines[1];
   let cli = googleImages(cseID, apiKey);
-  //var srch = 'Bulldog';
-  var test = dirs.slice(6)
+  var test = dirs.slice(155);//[dirs[10]]//
+  console.log(test[0]);
   test.forEach(function(e,i,a) {
-	//setTimeout(console.log(e), i*1000);
   	setTimeout(function() {searchIm(cli, e)}, i*25000);
   });
 });
 
 var saveIms = function(search, ims, pageNo) {
 	for(var i = 0; i <= ims.length-1; i++) {
-		download(ims[i]['url'], 'images/' + search + '/' + search + String(pageNo) + '-' + String(i) + '.jpg', function(){
+		console.log(ims[i]['url']);
+		var imType = ims[i]['type'].split('/')[1]
+		download(ims[i]['url'], 'images/' + search + '/' + search + String(pageNo) + '-' + String(i) + '.' + imType, function(){
 		  console.log('done');
 		});
 	}
@@ -60,7 +65,8 @@ var saveIms = function(search, ims, pageNo) {
 
 var srch = function(client, search, page) {
 	console.log('searching for: ' + search + ' breed');
-	client.search(search + ' breed', {page: page}).then(function (images) {
+	//console.log('page: ' + String(page));
+	client.search(search + ' breed', {page: page, size: 'large', filter: 1, safe: 'off', imgType: 'photo', imgColorType: 'color'}).then(function (images) {
 		saveIms(search, images, page);	
 	});
 }
@@ -77,4 +83,5 @@ var searchIm = function(client, search) {
 	
 	var pages = _.range(1, 5);
 	pages.forEach(function(e,i,a) {srch(client, search, e)});
+	//srch(client, search, 1);
 }
