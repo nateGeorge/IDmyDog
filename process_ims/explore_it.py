@@ -17,6 +17,9 @@ try:
 except IOError:
     imPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
     breeds = os.listdir(imPath)[:2]
+    if 'full' in breeds:
+        breeds.remove('full')
+    
     print(breeds)   
     
     pdDict = {}
