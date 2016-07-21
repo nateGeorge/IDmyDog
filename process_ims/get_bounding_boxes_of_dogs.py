@@ -4,21 +4,63 @@ import os
 import numpy as np
 import pandas as pd
 import random
+import pickle as pk
 
-pDogs = pd.DataFrame(columns=['breed','path','bodies','heads'])
+
 image = None
-imPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
-breeds = os.listdir(imPath)
+mainImPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
+breeds = sorted(os.listdir(mainImPath))
 breeds.remove('full')
-for breed in breeds:
-    breedFolder = imPath + breed
-    pics = os.listdir(breedFolder)
-    for pic in pics:
-        if os.path.isfile(breedFolder + '/' + pic):
-            pDogs.append({'path':pic, 'breed':breedFolder + '/'}, ignore_index=True)
-            '''if image == None:
-                image = cv2.imread(breedFolder + '/' + pic)
-                clone = image.copy()*/'''
+breeds.remove('test')
+
+# takes a long time to load the files--try to load from pickle if can
+try:
+    pDogs = pk.load(open('pickle_files/pDogs.pd.pk', 'rb'))
+except IOError:
+    pDogs = pd.DataFrame(columns=['breed','path','bodies','heads'])
+    for breed in breeds:
+        breedFolder = mainImPath + breed
+        pics = os.listdir(breedFolder)
+        for pic in pics:
+            if os.path.isfile(breedFolder + '/' + pic):
+                pDogs = pDogs.append({'breed':breed, 'path':breedFolder + '/' + pic}, ignore_index=True)
+                '''if image == None:
+                    image = cv2.imread(breedFolder + '/' + pic)
+                    clone = image.copy()*/'''
+    pk.dump(pDogs, open('pickle_files/pDogs.pd.pk', 'wb'))
+
+    
+def loadIm(breed):
+    # loads image from dataset
+    # checks to make sure image is 
+    # not none (in case its html, etc)
+    pics = pDogs[pDogs['breed'] == breed].path.tolist()
+    imPath = random.choice(pics)
+    image = cv2.imread(imPath)
+    while image==None:
+        imPath = random.choice(pics)
+        image = cv2.imread(imPath)
+    clone = image.copy()
+    return image, clone, imPath
+
+def nextIm():
+    # increments through to the next image
+    # writes and resets ROIs
+    image, clone, imPath = loadIm(breed)
+
+    return image, clone, imPath
+    
+def writeROIs(appendDict, imPath):
+    idx = pDogs[pDogs.path == imPath].index[0]
+    if appendDict['bodies'] != []:
+        pDogs.iloc[idx, 2] = appendDict['bodies']
+    if appendDict['heads'] != []:
+        pDogs.iloc[idx, 3] = appendDict['heads']
+    field = 'bodies'
+    appendDict = {}
+    appendDict['bodies'] = []
+    appendDict['heads'] = []
+    return field, appendDict
 
 refPt = []
 def getBBs(event, x, y, flags, param):
@@ -27,16 +69,16 @@ def getBBs(event, x, y, flags, param):
     # bounding boxes to be clicked
     # around dogs' bodies and faces
     # returns np array of bounding boxes
-    global pdDict, refPt
+    global pdDict, refPt, field
+    
     if event == cv2.EVENT_LBUTTONDOWN:
         refPt = [(x, y)]
-        pdList[0].append([(x, y)])
         print('mouse down', x, y)
     elif event == cv2.EVENT_LBUTTONUP:
         # record the ending (x, y) coordinates and indicate that
         # the cropping operation is finished
         refPt.append((x,y))
-        pdList[0].append((x, y))
+        appendDict[field].append(refPt)
         print('mouse up', x, y)
         
         # draw a rectangle around the region of interest
@@ -45,33 +87,68 @@ def getBBs(event, x, y, flags, param):
 
 cv2.namedWindow("image")
 cv2.setMouseCallback("image", getBBs)
- 
+
+breedCnt = 0
+breed = breeds[breedCnt]
+image, clone, imPath = loadIm(breed)
+cv2.imshow("image", image)
+field = 'bodies'
+appendDict = {}
+appendDict['bodies'] = []
+appendDict['heads'] = []
+
 # keep looping until the 'q' key is pressed
 while True:
     # display the image and wait for a keypress
-    cv2.imshow("image", image)
     key = cv2.waitKey(1) & 0xFF
     
-    # if the 'r' key is pressed, reset the cropping region
-    if key == ord("r"):
+    # if the 'r' key is pressed, reset everything
+    if key == ord('r'):
+        print('reset')
+        print('tracking bodies')
+        field = 'bodies'
+        appendDict = {}
+        appendDict['bodies'] = []
+        appendDict['heads'] = []
         image = clone.copy()
     
     # if the 'b' key is pressed, log position of dogs' bodies
     if key == ord('b'):
-        bodies = True
+        print('tracking bodies')
+        field = 'bodies'
     
     # if the 'f' key is pressed, log position of dogs' faces
     if key == ord('f'):
-        faces = True
+        print('tracking faces')
+        field = 'heads'
     
     # if the 'n' key is pressed, go to next dog pic
     if key == ord('n'):
-        faces = True
+        print(appendDict)
+        field, appendDict = writeROIs(appendDict, imPath)
+        print(appendDict)
+        image, clone, imPath = nextIm()
+        cv2.imshow("image", image)
         
     # if the 'd' key is pressed, go to next breed
+    # and load next pic
     if key == ord('d'):
-        faces = True
+        pk.dump(pDogs, open('pickle_files/pDogs-bounding-boxes.pd.pk', 'wb'))
+        print(appendDict)
+        field, appendDict = writeROIs(appendDict, imPath)
+        print(appendDict)
+        breedCnt += 1
+        if breedCnt >= len(breeds):
+            print('reached end of breeds')
+            break
+        breed = breeds[breedCnt]
+        print('breed: ', breed)
+        image, clone, imPath = nextIm()
+        cv2.imshow("image", image)
     
-    # if the 'c' key is pressed, break from the loop
-    elif key == ord("c"):
+    # if the 'q' key is pressed, break from the loop
+    elif key == ord('q'):
+        appendDict = writeROIs(appendDict, imPath)
         break
+
+pk.dump(pDogs, open('pickle_files/pDogs-bounding-boxes.pd.pk', 'wb'))
