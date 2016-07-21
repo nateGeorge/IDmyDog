@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import random
 import pickle as pk
+import re
 
 
 image = None
@@ -29,25 +30,46 @@ except IOError:
                     clone = image.copy()*/'''
     pk.dump(pDogs, open('pickle_files/pDogs.pd.pk', 'wb'))
 
-    
-def loadIm(breed):
+pDogs = pk.load(open('pickle_files/pDogs-bounding-boxes.pd.pk', 'rb'))
+bb = pDogs.dropna()
+lastbreed = bb.iloc[-1].breed
+breedCnt = breeds.index(lastbreed) + 1
+
+def loadIm(breed, randPic=False):
     # loads image from dataset
     # checks to make sure image is 
     # not none (in case its html, etc)
-    pics = pDogs[pDogs['breed'] == breed].path.tolist()
-    imPath = random.choice(pics)
+    global imCnt, pics
+    if randPic:
+        imPath = random.choice(pics)
+    else:
+        imPath = pics[imCnt]
+        print('pic #', imCnt)
     image = cv2.imread(imPath)
+    print('image:', imPath.split('/')[-1])
     while image==None:
         imPath = random.choice(pics)
         image = cv2.imread(imPath)
     clone = image.copy()
     return image, clone, imPath
 
-def nextIm():
+def nextIm(randPic=False, dir='fwd'):
     # increments through to the next image
     # writes and resets ROIs
-    image, clone, imPath = loadIm(breed)
-
+    global imCnt, pics
+    if randPic:
+        image, clone, imPath = loadIm(breed, randPic=True)
+    else:
+        print(dir)
+        if dir=='fwd':
+            imCnt += 1
+            if imCnt >= len(pics):
+                imCnt = 0 # loop back to beginning if at end
+        elif dir=='bwd':
+            imCnt -= 1
+            if imCnt < 0:
+                imCnt = len(pics) - 1 # go to last pic if at beginning
+        image, clone, imPath = loadIm(breed)
     return image, clone, imPath
     
 def writeROIs(appendDict, imPath):
@@ -61,6 +83,18 @@ def writeROIs(appendDict, imPath):
     appendDict['bodies'] = []
     appendDict['heads'] = []
     return field, appendDict
+
+def sortPics():
+    global pics, breed
+    pics = pDogs[pDogs['breed'] == breed].path.tolist()
+    picNames = [e.split('/')[-1] for e in pics]
+    akcPic = max(pics, key=lambda x: len(x)) #akc pic encoded with hash so has longest len
+    pics.remove(akcPic)
+    picNosRE = [(pics.index(e), re.search('(\d)-(\d)', e).group(1), re.search('(\d)-(\d)', e).group(2)) for e in pics]
+    picNosRE.sort(key = lambda x: (x[1], x[2]))
+    picsIdxs = [x[0] for x in picNosRE]
+    sortedPics = [pics[i] for i in picsIdxs]
+    pics = [akcPic] + sortedPics
 
 refPt = []
 def getBBs(event, x, y, flags, param):
@@ -88,8 +122,12 @@ def getBBs(event, x, y, flags, param):
 cv2.namedWindow("image")
 cv2.setMouseCallback("image", getBBs)
 
-breedCnt = 0
+#breedCnt = 0
+imCnt = 0
 breed = breeds[breedCnt]
+print('breed:', breed)
+sortPics()
+print(len(pics), '# of pics')
 image, clone, imPath = loadIm(breed)
 cv2.imshow("image", image)
 field = 'bodies'
@@ -101,6 +139,12 @@ appendDict['heads'] = []
 while True:
     # display the image and wait for a keypress
     key = cv2.waitKey(1) & 0xFF
+    
+    '''
+    # debugging
+    if key!=255:
+        print(key)
+    '''
     
     # if the 'r' key is pressed, reset everything
     if key == ord('r'):
@@ -122,14 +166,25 @@ while True:
         print('tracking faces')
         field = 'heads'
     
-    # if the 'n' key is pressed, go to next dog pic
+    # if the 'n' key is pressed, go to random dog pic
     if key == ord('n'):
         print(appendDict)
         field, appendDict = writeROIs(appendDict, imPath)
         print(appendDict)
-        image, clone, imPath = nextIm()
+        image, clone, imPath = nextIm(randPic=True)
         cv2.imshow("image", image)
-        
+    
+    # if fwd arrow pressed go to next in order pic
+    if key == 83:
+        field, appendDict = writeROIs(appendDict, imPath)
+        image, clone, imPath = nextIm(dir='fwd')
+        cv2.imshow("image", image)
+    
+    if key == 81:
+        field, appendDict = writeROIs(appendDict, imPath)
+        image, clone, imPath = nextIm(dir='bwd')
+        cv2.imshow("image", image)
+    
     # if the 'd' key is pressed, go to next breed
     # and load next pic
     if key == ord('d'):
@@ -142,6 +197,7 @@ while True:
             print('reached end of breeds')
             break
         breed = breeds[breedCnt]
+        sortPics()
         print('breed: ', breed)
         image, clone, imPath = nextIm()
         cv2.imshow("image", image)
