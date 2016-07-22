@@ -14,15 +14,34 @@ for i in range(bb.shape[0]):
     # check if any bounding boxes are small (accidental click)
     # remove them from the temp array and then rewrite the data
     # if it changed
+    imPath = bb.iloc[i].path
+    image = cv2.imread(imPath)
+    h, w = image.shape[:2]
     bods = bb.iloc[i].bodies
     newBods = bods.copy()
     changed = False
     for body in bods:
         bbDiffs = sum(abs(np.array(body[0])-np.array(body[1])))
+        bc = [[b[0], b[1]] for b in body]
         if bbDiffs < 20:
             print('removing', body, 'from index', i)
             changed = True
             newBods.remove(body)
+        else:
+            # take care of case where box is outside of image
+            if bc[0][0] < 0:
+                bc[0][0] = 0
+                changed = True
+            if bc[1][0] > h:
+                bc[1][0] = h
+                changed = True
+            if bc[0][1] < 0:
+                bc[0][0] = 0
+                changed = True
+            if bc[1][1] > w:
+                bc[1][0] = w
+                changed = True
+            newBods.append(bc)
     if changed:
         bb.iloc[i].bodies = newBods
     
