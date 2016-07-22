@@ -46,14 +46,14 @@ def loadIm(breed, randPic=False):
     global imCnt, pics
     if randPic:
         imPath = random.choice(pics)
+        while image==None:
+            imPath = random.choice(pics)
+            image = cv2.imread(imPath)
     else:
         imPath = pics[imCnt]
         print('pic #', imCnt)
     image = cv2.imread(imPath)
     print('image:', imPath.split('/')[-1])
-    while image==None:
-        imPath = random.choice(pics)
-        image = cv2.imread(imPath)
     clone = image.copy()
     return image, clone, imPath
 
@@ -69,13 +69,30 @@ def nextIm(randPic=False, dir='fwd', newBreed=False):
             imCnt += 1
             if imCnt >= len(pics):
                 imCnt = 0 # loop back to beginning if at end
+            imPath = pics[imCnt]
+            image = cv2.imread(imPath)
+            while image==None:
+                imCnt += 1
+                if imCnt >= len(pics):
+                    imCnt = 0 # loop back to beginning if at end
+                imPath = pics[imCnt]
+                image = cv2.imread(imPath)
         elif dir=='bwd':
             imCnt -= 1
             if imCnt < 0:
                 imCnt = len(pics) - 1 # go to last pic if at beginning
+            imPath = pics[imCnt]
+            image = cv2.imread(imPath)
+            while image==None:
+                imCnt -= 1
+                if imCnt < 0:
+                    imCnt = len(pics) - 1 # go to last pic if at beginning
+                imPath = pics[imCnt]
+                image = cv2.imread(imPath)
         if newBreed:
             imCnt = 0
         image, clone, imPath = loadIm(breed)
+    print('image data:', pDogs[pDogs.path == imPath])
     return image, clone, imPath
     
 def writeROIs(appendDict, imPath):
@@ -128,13 +145,16 @@ def getBBs(event, x, y, flags, param):
 cv2.namedWindow("image")
 cv2.setMouseCallback("image", getBBs)
 
-#breedCnt = 0
+breedCnt = 0
 imCnt = 0
 breed = breeds[breedCnt]
+breedNumIms = bb[bb.breed==breed].shape[0]
+print('number of pics for', breed, ':', breedNumIms)
 print('breed:', breed)
 sortPics()
-print(len(pics), '# of pics')
+print(len(pics), 'total pics')
 image, clone, imPath = loadIm(breed)
+print('image data:', pDogs[pDogs.path == imPath])
 cv2.imshow("image", image)
 field = 'bodies'
 appendDict = {}
@@ -204,6 +224,8 @@ while True:
             print('reached end of breeds')
             break
         breed = breeds[breedCnt]
+        breedNumIms = bb[bb.breed==breed].shape[0]
+        print('number of pics for', breed, ':', breedNumIms)
         sortPics()
         print('breed: ', breed)
         image, clone, imPath = nextIm(newBreed=True)
