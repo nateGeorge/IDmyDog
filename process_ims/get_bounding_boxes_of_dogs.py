@@ -46,14 +46,14 @@ def loadIm(breed, randPic=False):
     global imCnt, pics
     if randPic:
         imPath = random.choice(pics)
+        while image==None:
+            imPath = random.choice(pics)
+            image = cv2.imread(imPath)
     else:
         imPath = pics[imCnt]
         print('pic #', imCnt)
     image = cv2.imread(imPath)
     print('image:', imPath.split('/')[-1])
-    while image==None:
-        imPath = random.choice(pics)
-        image = cv2.imread(imPath)
     clone = image.copy()
     return image, clone, imPath
 
@@ -69,15 +69,32 @@ def nextIm(randPic=False, dir='fwd', newBreed=False):
             imCnt += 1
             if imCnt >= len(pics):
                 imCnt = 0 # loop back to beginning if at end
+            imPath = pics[imCnt]
+            image = cv2.imread(imPath)
+            while image==None:
+                imCnt += 1
+                if imCnt >= len(pics):
+                    imCnt = 0 # loop back to beginning if at end
+                imPath = pics[imCnt]
+                image = cv2.imread(imPath)
         elif dir=='bwd':
             imCnt -= 1
             if imCnt < 0:
                 imCnt = len(pics) - 1 # go to last pic if at beginning
+            imPath = pics[imCnt]
+            image = cv2.imread(imPath)
+            while image==None:
+                imCnt -= 1
+                if imCnt < 0:
+                    imCnt = len(pics) - 1 # go to last pic if at beginning
+                imPath = pics[imCnt]
+                image = cv2.imread(imPath)
         if newBreed:
             imCnt = 0
         image, clone, imPath = loadIm(breed)
+    print('image data:', pDogs[pDogs.path == imPath])
     return image, clone, imPath
-    
+
 def writeROIs(appendDict, imPath):
     idx = pDogs[pDogs.path == imPath].index[0]
     if appendDict['bodies'] != []:
