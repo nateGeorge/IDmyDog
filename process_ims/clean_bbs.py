@@ -1,5 +1,5 @@
 # removes any bounding boxes that are really small (accidental clicks)
-
+from __future__ import print_function
 import cv2
 import os
 import pickle as pk
@@ -43,4 +43,4 @@ for i in range(bb.shape[0]):
         toDrop.append(i)
 
 bb.drop(bb.index[toDrop], inplace=True)
-pk.dump(bb, open('pickle_files/pDogs-bounding-boxes-clean.pd.pk', 'wb'))
+pk.dump(bb, open('pickle_files/pDogs-bounding-boxes-clean.pd.pk', 'wb'), protocol=2)
