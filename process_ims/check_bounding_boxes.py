@@ -1,7 +1,7 @@
 # loads dog images and bounding boxes around heads and bodies
 # honestly this would take way too long to go through by hand since there are ~1500 images
 # this is intended as more of a spot check
-
+from __future__ import print_function
 import cv2
 import os
 import pickle as pk

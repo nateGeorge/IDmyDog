@@ -1,7 +1,7 @@
 # takes dog images and pandas dataframe
 # cuts out images of heads and bodies
 # using bounding boxes from pandas DF
-
+from __future__ import print_function
 import pandas as pd
 import pickle as pk
 import cv2
