@@ -1,11 +1,12 @@
 # loads dog images and bounding boxes around heads and bodies
 # honestly this would take way too long to go through by hand since there are ~1500 images
+# this is intended as more of a spot check
 
 import cv2
 import os
 import pickle as pk
 
-pDogs = pk.load(open('pickle_files/pDogs-bounding-boxes.pd.pk', 'rb'))
+pDogs = pk.load(open('pickle_files/pDogs-bounding-boxes-clean.pd.pk', 'rb'))
 bb = pDogs.dropna()
 
 for i in range(bb.shape[0]):
