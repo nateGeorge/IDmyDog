@@ -32,7 +32,7 @@ for i in range(bb.shape[0]):
     print(imName)
     if ext:
         if sb:
-            imName = imName.split('.')[0:1]
+            imName = ' '.join(imName.split('.')[0:2])
         else:
             imName = imName.split('.')[0]
     print(imName)
