@@ -1,3 +1,5 @@
+# TODO: debug broken files that don't save correctly
+
 # takes dog images and pandas dataframe
 # cuts out images of heads and bodies
 # using bounding boxes from pandas DF
@@ -25,10 +27,14 @@ for i in range(bb.shape[0]):
     bods = bb.iloc[i].bodies
     imPath = bb.iloc[i].path
     imName = bb.iloc[i].path.split('/')[-1]
+    sb = re.search('St. Bernard', imName)
     ext = re.search('\.\w', imName)
     print(imName)
     if ext:
-        imName = imName.split('.')[0]
+        if sb:
+            imName = imName.split('.')[0:1]
+        else:
+            imName = imName.split('.')[0]
     print(imName)
     image = cv2.imread(imPath)
     cv2.imshow('original', image)
