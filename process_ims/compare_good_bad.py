@@ -172,3 +172,5 @@ def get_color_stds(dataFr):
 
 good_stds = get_color_stds(breed_ims_good)
 bad_stds = get_color_stds(breed_ims_bad)
+
+plot_good_n_bad()
