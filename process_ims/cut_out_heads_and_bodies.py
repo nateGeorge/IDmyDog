@@ -1,5 +1,3 @@
-# TODO: debug broken files that don't save correctly
-
 # takes dog images and pandas dataframe
 # cuts out images of heads and bodies
 # using bounding boxes from pandas DF
