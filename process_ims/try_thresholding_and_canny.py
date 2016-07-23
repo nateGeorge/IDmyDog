@@ -7,6 +7,11 @@ import pickle as pk
 import cv2
 import os
 import imutils
+from skimage.filters import threshold_adaptive
+from skimage.morphology import disk
+from skimage.filters import threshold_otsu, rank
+from skimage.util import img_as_ubyte
+import pylab as plt
 
 mainImPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
 
@@ -24,6 +29,26 @@ for i in range(bb.shape[0]):
     bods = bb.iloc[i].bodies
     image = cv2.imread(bb.iloc[i].path)
     cv2.imshow('original', image)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (7, 7), 0)
+    # global thresholding--not a good idea
+    # (T, threshInv) = cv2.threshold(blurred, 0, 255,
+    #                cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+    # local thresholding--much better
+    thresh = threshold_adaptive(gray, 29, offset=5).astype("uint8") * 255
+    cv2.imshow("adaptive threshold", thresh)
+    # local otsu thresholding
+    radius = 5
+    selem = disk(radius)
+    local_otsu = rank.otsu(blurred, selem)
+    grayIm = img_as_ubyte(blurred)
+    #cv2.imshow('local otsu', grayIm>=local_otsu)
+    plt.imshow(grayIm>=local_otsu, cmap=plt.cm.gray)
+    plt.show()
+    #thresh2 = threshold_adaptive(local_otsu, 29, offset=5).astype("uint8") * 255
+    #cv2.imshow("adaptive threshold after otsu", thresh2)
+    cv2.waitKey(0)
+    '''
     for body in bods:
         print(body)
         ys = sorted([body[0][1],body[1][1]])
@@ -32,10 +57,7 @@ for i in range(bb.shape[0]):
         cv2.imshow('cropped', crBod)
         can = imutils.auto_canny(crBod)
         cv2.imshow('canny', can)
-        gray = cv2.cvtColor(crBod, cv2.COLOR_BGR2GRAY)
-        blurred = cv2.GaussianBlur(gray, (7, 7), 0)
-        (T, threshInv) = cv2.threshold(blurred, 0, 255,
-	                    cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
-        cv2.imshow("Threshold", threshInv)
+
         cv2.waitKey(0)
         #exit()
+    '''
