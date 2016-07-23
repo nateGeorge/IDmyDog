@@ -1,7 +1,3 @@
-# todo: reorganize bounding boxes so they have a standard
-# going from top left to bottom right
-# then check for bounding boxes outside of image
-
 # removes any bounding boxes that are really small (accidental clicks)
 from __future__ import print_function
 import cv2
