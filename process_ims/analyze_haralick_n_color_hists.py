@@ -3,14 +3,43 @@ from sklearn.decomposition import PCA
 import pandas as pd
 import pickle as pk
 import re
+import seaborn as sns
+import numpy as np
+import matplotlib.pyplot as plt
+plt.style.use('seaborn-dark')
 
-def show_examples(idxs):
+def show_examples(idxs, printStd=True):
+    x = ['#{}'.format(i) for i in range(1,14)]
+    x = list(range(1,14))
+    xs = []
+    hara = []
+    breed = []
+    noDF = True
     for idx in idxs:
         a = hNt.iloc[idx]
-        print('breed:', a.breed)
-        print('filename:', a.file)
-        print('foreground Haralick:', a.fgHaralick)
-        print('background Haralick:', a.bgHaralick)
+        xs.append(x)
+        hara.append(np.log(abs(a.fgHaralick)))
+        breed.append([a.breed]*13)
+        if noDF:
+            df = a
+            noDF = False
+        else:
+            df = df.append(a)
+        
+        if printStd:
+            print('breed:', a.breed)
+            print('filename:', a.file)
+            print('foreground Haralick:', a.fgHaralick)
+            print('background Haralick:', a.bgHaralick)
+    newDF = pd.DataFrame(columns=['Haralick feature', 'log(Haralick feature value)', 'breed'])
+    newDF['Haralick feature'] = np.array(xs).flatten()
+    newDF['log(Haralick feature value)'] = np.array(hara).flatten()
+    newDF['breed'] = np.array(breed).flatten()
+    newDF.sort_values(by='breed', inplace=True)
+    sns.lmplot(x='Haralick feature', y='log(Haralick feature value)', data=newDF, fit_reg=False, hue='breed')
+    plt.xticks(x)
+    plt.show()
+
 
 histNtext = pk.load(open('pickle_files/histNtext.pd.pk', 'rb'))
 histNtext.reset_index(inplace=True)
@@ -50,8 +79,9 @@ histNtext['raw_file_name'] = pd.Series(files)
 # add breed info to histNtext DF
 hNt = histNtext.merge(bb[['breed', 'raw_file_name']], on='raw_file_name')
 
-show_examples([100, 515, 780])
-exit()
+# uncomment to show examples:
+#show_examples([100, 515, 780])
+#show_examples([0, 10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 500, 515, 600, 780, 1000, 1200, 1300], printStd=False)
 
 # make dataframes with each component of haralick texture as a column
 bgHDF = pd.DataFrame(index=range(hNt.shape[0]), columns=['bg{}'.format(i) for i in range(1,14)])
