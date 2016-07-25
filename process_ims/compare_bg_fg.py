@@ -96,11 +96,12 @@ def get_fg_bg_rects(fg):
 
 def get_avg_hara(im, rects):
     # returns the haralick texture averaged over all rectangles in an image
+    im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     hara = 0
     for r in rects:
         # slice images as: img[y0:y1, x0:x1]
         hara += haralick(im[r[0][1]:r[1][1], r[0][0]:r[1][0]]).mean(0)
-    hara /= (len(rects) + 1)
+    hara /= (len(rects))
     return hara
 
 widgets = ["Comparing: ", progressbar.Percentage(), " ", progressbar.Bar(), " ", progressbar.ETA()]
@@ -128,7 +129,5 @@ for i, breed in enumerate(sorted(bb.breed.unique().tolist())):
             rowCnt += 1
     pickle.dump(histNtext, open('pickle_files/histNtext.pd.pk', 'wb'))
     pbar.update(i)
-            
-            
-        
+
 pbar.finish()
