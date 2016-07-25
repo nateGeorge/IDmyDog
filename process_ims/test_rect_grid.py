@@ -18,24 +18,29 @@ for breed in sorted(bb.breed.unique().tolist()):
     
     for fi in fgFiles:
         print(fi)
-        fg = cv2.imread(fgDir + fi, -1)
-        bg = cv2.imread(bgDir + fi, -1)
-        break
+        if fi=='Affenpinscher1-2.png':
+            fg = cv2.imread(fgDir + fi, -1)
+            bg = cv2.imread(bgDir + fi, -1)
+            break
     break
 
 b, g, r, a = cv2.split(fg)
 fgcp = fg.copy()
 bgcp = bg.copy()
 h, w = fg.shape[:2]
+h -= 1
+w -= 1 # to avoid indexing problems
 rectDims = [10, 10] # w, h of rectangles
 hRects = h / rectDims[0]
 wRects = w / rectDims[1]
+print(hRects, wRects)
 fgRects = []
 bgRects = []
 for i in range(wRects):
     for j in range(hRects):
         pt1 = (i * rectDims[0], j * rectDims[1])
         pt2 = ((i + 1) * rectDims[0], (j + 1) * rectDims[1])
+        print(pt1, pt2)
         # alpha is 0 over the part of the dog
         if a[pt1[1], pt1[0]] == 255 and a[pt2[1], pt2[0]] == 255:
             fgRects.append([pt1, pt2])
