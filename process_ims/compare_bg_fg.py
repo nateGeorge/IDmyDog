@@ -9,9 +9,11 @@ import cv2
 import os
 import re
 import progressbar
+import imutils
 import numpy as np
 import matplotlib.pyplot as plt
 from mahotas.features import haralick
+import threading
 plt.style.use('seaborn-dark')
 
 mainImPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
@@ -96,6 +98,8 @@ def get_fg_bg_rects(fg):
 
 def get_avg_hara(im, rects):
     # returns the haralick texture averaged over all rectangles in an image
+    if len(rects)==0:
+        return None
     im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     hara = 0
     for r in rects:
@@ -104,30 +108,52 @@ def get_avg_hara(im, rects):
     hara /= (len(rects))
     return hara
 
+def do_analysis(i, breed):
+    global histNtext, rowCnt, pbar
+    cropDir = mainImPath + breed + '/cropped/bodies/'
+    fgDir = cropDir + 'fg/'
+    bgDir = cropDir + 'bg/'
+    fgFiles = os.listdir(fgDir)
+
+    for fi in fgFiles:
+        print(fi)
+        pbar.update(i)
+        try:
+            fg = cv2.imread(fgDir + fi, -1)
+            bg = cv2.imread(bgDir + fi, -1) # -1 tells it to load alpha channel
+        except:
+            continue
+        if fg!=None and bg!=None:
+            #make_fg_bg_hist_plot(fg, bg)
+            if fg.shape[1] > 450:
+                fg = imutils.resize(fg, width = 450)
+                bg = imutils.resize(bg, width = 450)
+            fgRects, bgRects = get_fg_bg_rects(fg)
+            fgHara = get_avg_hara(fg, fgRects)
+            bgHara = get_avg_hara(bg, bgRects)
+            fgHist, bgHist = get_fg_bg_color_hists(fg, bg)
+            if None in [fgRects, bgRects, fgHara, bgHara]:
+                continue
+            histNtext.loc[rowCnt] = [fi, fgHara, bgHara, fgHist, bgHist]
+            rowCnt += 1
+    
+    pk.dump(histNtext, open('pickle_files/histNtext.pd.pk', 'wb'))
+    pbar.update(i)
+
 widgets = ["Comparing: ", progressbar.Percentage(), " ", progressbar.Bar(), " ", progressbar.ETA()]
 pbar = progressbar.ProgressBar(maxval=bb.shape[0], widgets=widgets).start()
 
 rowCnt = 0
 histNtext = pd.DataFrame(columns=['file', 'fgHaralick', 'bgHaralick', 'fgHist', 'bgHist'])
-for i, breed in enumerate(sorted(bb.breed.unique().tolist())):
-    cropDir = mainImPath + breed + '/cropped/bodies/'
-    fgDir = cropDir + 'fg/'
-    bgDir = cropDir + 'bg/'
-    fgFiles = os.listdir(fgDir)
-    
-    for fi in fgFiles:
-        print(fi)
-        fg = cv2.imread(fgDir + fi, -1)
-        bg = cv2.imread(bgDir + fi, -1) # -1 tells it to load alpha channel
-        if fg!=None and bg!=None:
-            #make_fg_bg_hist_plot(fg, bg)
-            fgRects, bgRects = get_fg_bg_rects(fg)
-            fgHara = get_avg_hara(fg, fgRects)
-            bgHara = get_avg_hara(bg, bgRects)
-            fgHist, bgHist = get_fg_bg_color_hists(fg, bg)
-            histNtext.loc[rowCnt] = [fi, fgHara, bgHara, fgHist, bgHist]
-            rowCnt += 1
-    pickle.dump(histNtext, open('pickle_files/histNtext.pd.pk', 'wb'))
-    pbar.update(i)
+
+threads = []
+for i in list(enumerate(sorted(bb.breed.unique().tolist()))):
+    t = threading.Thread(target=do_analysis, args=i)
+    t.daemon = True
+    t.start()
+    threads.append(t)
+
+for each in threads:
+    each.join()
 
 pbar.finish()
