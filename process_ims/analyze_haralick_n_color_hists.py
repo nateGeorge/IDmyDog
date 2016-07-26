@@ -64,13 +64,6 @@ def get_hara_stats(df):
     plt.xticks(x)
     plt.show()
 
-histNtext = pk.load(open('pickle_files/histNtext.pd.pk', 'rb'))
-histNtext.reset_index(inplace=True)
-
-bb = pk.load(open('pickle_files/pDogs-bounding-boxes-clean.pd.pk', 'rb'))
-bb.dropna(inplace=True)
-bb.reset_index(inplace=True)
-
 def getOutliers(df):
     # calculates quartiles and gets outliers
     outliers = []
@@ -89,8 +82,14 @@ def getOutliers(df):
             outlierDict.setdefault(out, []).append(feature)
     
     return sorted(list(set(outliers))), zip(outliers, feats), outlierDict
-    
-    
+
+histNtext = pk.load(open('pickle_files/histNtext.pd.pk', 'rb'))
+histNtext.reset_index(inplace=True)
+
+bb = pk.load(open('pickle_files/pDogs-bounding-boxes-clean.pd.pk', 'rb'))
+bb.dropna(inplace=True)
+bb.reset_index(inplace=True)
+
 # make column of just filename in breed/bounding box DF
 mainImPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
 files = []
@@ -105,8 +104,6 @@ for i in range(bb.shape[0]):
             imName = imName.split('.')[0]
     elif imName[-1]=='.':
         imName = imName[:-1]
-    if imName == 'd8a75cb8ad0baa572575c9909fcb6901f30dea8b':
-        print(imName, i)
     files.append(imName)
 
 bb['raw_file_name'] = pd.Series(files)
@@ -120,6 +117,8 @@ histNtext['raw_file_name'] = pd.Series(files)
 
 # add breed info to histNtext DF
 hNt = histNtext.merge(bb[['breed', 'raw_file_name']], on='raw_file_name')
+hNt.drop('index', 1, inplace=True)
+hNt.reset_index(inplace=True)
 
 # uncomment to show examples:
 #show_examples([100, 515, 780])
@@ -152,6 +151,9 @@ print(varianceFG)
 print('top 3 bg components:', varianceBG[:3].sum())
 print('top 3 fg components:', varianceFG[:3].sum())
 print('top 4 fg components:', varianceFG[:4].sum())
+
+# save pcaFG fit for later use
+pk.dump(pcaFG, open('pickle_files/pcaFG.pk', 'wb'))
 
 # plot cumulative distribution of PCA componenents
 serBG = pd.Series(varianceBG)
@@ -190,8 +192,9 @@ for k, v in outDict.items():
     if len(v) > 1:
         throwOut.append(k)
 
-reduced_data_FG = reduced_data_FG.drop(reduced_data_FG.index[throwOut]).reset_index(drop = True)
-reduced_data_FG.drop('index', 1, inplace=True)
+new_FG = reduced_data_FG.drop(reduced_data_FG.index[throwOut]).reset_index(drop = True)
+
+pk.dump(new_FG, open('pickle_files/training_data.pd.pk', 'wb'))
 
 # examine a subset of the data
 testBreeds = ['Affenpinscher', 'Afghan Hound', 'Norwegian Buhund', 'Czechoslovakian Vlcak', 'Boxer', 'Dogue de Bordeaux']
