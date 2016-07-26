@@ -9,28 +9,24 @@ import matplotlib.pyplot as plt
 plt.style.use('seaborn-dark')
 
 def show_examples(idxs, printStd=True):
-    x = ['#{}'.format(i) for i in range(1,14)]
+    # prints example dataset from supplied indexs, idxs
+    # and plots the foreground haralick features
     x = list(range(1,14))
     xs = []
     hara = []
     breed = []
-    noDF = True
     for idx in idxs:
         a = hNt.iloc[idx]
         xs.append(x)
         hara.append(np.log(abs(a.fgHaralick)))
         breed.append([a.breed]*13)
-        if noDF:
-            df = a
-            noDF = False
-        else:
-            df = df.append(a)
         
         if printStd:
             print('breed:', a.breed)
             print('filename:', a.file)
             print('foreground Haralick:', a.fgHaralick)
             print('background Haralick:', a.bgHaralick)
+    
     newDF = pd.DataFrame(columns=['Haralick feature', 'log(Haralick feature value)', 'breed'])
     newDF['Haralick feature'] = np.array(xs).flatten()
     newDF['log(Haralick feature value)'] = np.array(hara).flatten()
@@ -40,6 +36,33 @@ def show_examples(idxs, printStd=True):
     plt.xticks(x)
     plt.show()
 
+def get_hara_stats(df):
+    # gets statistics on haralick features
+    # takes dataframe with haralick and breeds
+    x = list(range(1,14))
+    xs = []
+    haraFG = []
+    breed = []
+    for i in range(df.shape[0]):
+        a = df.iloc[i]
+        xs.append(x)
+        haraFG.append(a.fgHaralick)
+        breed.append([a.breed]*13)
+    
+    newDF = pd.DataFrame(columns=['Haralick feature', 'Haralick feature value', 'breed'])
+    newDF['Haralick feature'] = np.array(xs).flatten()
+    newDF['Haralick FG feature value'] = np.array(haraFG).flatten()
+    newDF['breed'] = np.array(breed).flatten()
+    stds = []
+    for i in x:
+        stds.append(newDF[newDF['Haralick feature']==i]['Haralick FG feature value'].std()
+                    / newDF[newDF['Haralick feature']==i]['Haralick FG feature value'].mean())
+    
+    data = np.vstack((np.array(x), np.array(stds))).T
+    pltDF = pd.DataFrame(columns=['Haralick feature', 'relative standard deviation'], data=data)
+    sns.lmplot(x='Haralick feature', y='relative standard deviation', data=pltDF, fit_reg=False)
+    plt.xticks(x)
+    plt.show()
 
 histNtext = pk.load(open('pickle_files/histNtext.pd.pk', 'rb'))
 histNtext.reset_index(inplace=True)
@@ -48,7 +71,26 @@ bb = pk.load(open('pickle_files/pDogs-bounding-boxes-clean.pd.pk', 'rb'))
 bb.dropna(inplace=True)
 bb.reset_index(inplace=True)
 
-
+def getOutliers(df):
+    # calculates quartiles and gets outliers
+    outliers = []
+    feats = []
+    outlierDict = {}
+    # only care about the first 3 dims
+    features = ['Dim{}'.format(i) for i in range(1, 4)]
+    for feature in features:
+        Q1 = np.percentile(df[feature], 25)
+        Q3 = np.percentile(df[feature], 75)
+        step = (Q3-Q1) * 1.5
+        newOutliers = df[~((df[feature] >= Q1 - step) & (df[feature] <= Q3 + step))].index.values
+        outliers.extend(newOutliers)
+        feats.extend(newOutliers.shape[0] * [feature])
+        for out in newOutliers:
+            outlierDict.setdefault(out, []).append(feature)
+    
+    return sorted(list(set(outliers))), zip(outliers, feats), outlierDict
+    
+    
 # make column of just filename in breed/bounding box DF
 mainImPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
 files = []
@@ -83,14 +125,17 @@ hNt = histNtext.merge(bb[['breed', 'raw_file_name']], on='raw_file_name')
 #show_examples([100, 515, 780])
 #show_examples([0, 10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 500, 515, 600, 780, 1000, 1200, 1300], printStd=False)
 
+# uncomment to plot foreground haralick standard deviations
+#get_hara_stats(hNt)
+
 # make dataframes with each component of haralick texture as a column
 bgHDF = pd.DataFrame(index=range(hNt.shape[0]), columns=['bg{}'.format(i) for i in range(1,14)])
 fgHDF = pd.DataFrame(index=range(hNt.shape[0]), columns=['fg{}'.format(i) for i in range(1,14)])
 
 # transform the data by taking the log because it varies over orders of magnitude
 # also need to take absolute value because some values are negative
-for i in range(histNtext.shape[0]):
-    for j in range(fullDF.shape[1]):
+for i in range(hNt.shape[0]):
+    for j in range(13):
         bgHDF.iloc[i,j] = np.log(abs(hNt.iloc[i]['bgHaralick'][j]))
         fgHDF.iloc[i,j] = np.log(abs(hNt.iloc[i]['fgHaralick'][j]))
 
@@ -105,7 +150,8 @@ print(varianceBG)
 print(varianceFG)
 # about 95% of the variance is captured by the first 3 components of PCA
 print('top 3 bg components:', varianceBG[:3].sum())
-print('top 3 bg components:', varianceFG[:3].sum())
+print('top 3 fg components:', varianceFG[:3].sum())
+print('top 4 fg components:', varianceFG[:4].sum())
 
 # plot cumulative distribution of PCA componenents
 serBG = pd.Series(varianceBG)
@@ -128,13 +174,24 @@ plt.show()
 
 # transform the data with our PCA
 reduced_data_BG = pd.DataFrame(pcaBG.transform(bgHDF), columns=['Dim{}'.format(i) for i in range(1,7)])
-reduced_data_FG = pd.DataFrame(pcaBG.transform(bgHDF), columns=['Dim{}'.format(i) for i in range(1,7)])
+reduced_data_FG = pd.DataFrame(pcaBG.transform(fgHDF), columns=['Dim{}'.format(i) for i in range(1,7)])
 
 # need an 'index' column to be able to merge with breed info
 reduced_data_BG.reset_index(inplace=True)
 new_BG = reduced_data_BG.merge(hNt[['index', 'breed']], on='index')
 reduced_data_FG.reset_index(inplace=True)
 new_FG = reduced_data_FG.merge(hNt[['index', 'breed']], on='index')
+
+# analyze outliers
+outliers, outFeats, outDict = getOutliers(reduced_data_FG)
+# we only care about outliers in more than one dim
+throwOut = []
+for k, v in outDict.items():
+    if len(v) > 1:
+        throwOut.append(k)
+
+reduced_data_FG = reduced_data_FG.drop(reduced_data_FG.index[throwOut]).reset_index(drop = True)
+reduced_data_FG.drop('index', 1, inplace=True)
 
 # examine a subset of the data
 testBreeds = ['Affenpinscher', 'Afghan Hound', 'Norwegian Buhund', 'Czechoslovakian Vlcak', 'Boxer', 'Dogue de Bordeaux']
@@ -153,8 +210,9 @@ sns.pairplot(test_FG[['Dim{}'.format(i) for i in range(1,4)] + ['breed']], hue='
 plt.show()
 
 # generate pairplot of foreground haralick PCA components 1-3
-g = sns.PairGrid(test_FG[['Dim{}'.format(i) for i in range(1,4)] + ['breed']], hue='breed')
-g.map_diag(sns.kdeplot)
+test_FG = test_FG.sort_values(by='breed')
+g = sns.PairGrid(test_FG[['Dim{}'.format(i) for i in range(1,5)] + ['breed']], hue='breed')
+g = g.map_diag(sns.kdeplot)
 g = g.map_upper(plt.scatter)
 g = g.map_lower(sns.kdeplot, cmap='Blues_d')
 g.add_legend()
