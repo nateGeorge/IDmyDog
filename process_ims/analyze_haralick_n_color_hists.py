@@ -121,11 +121,11 @@ hNt.drop('index', 1, inplace=True)
 hNt.reset_index(inplace=True)
 
 # uncomment to show examples:
-#show_examples([100, 515, 780])
-#show_examples([0, 10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 500, 515, 600, 780, 1000, 1200, 1300], printStd=False)
+show_examples([100, 515, 780])
+show_examples([0, 10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 500, 515, 600, 780, 1000, 1200, 1300], printStd=False)
 
 # uncomment to plot foreground haralick standard deviations
-#get_hara_stats(hNt)
+get_hara_stats(hNt)
 
 # make dataframes with each component of haralick texture as a column
 bgHDF = pd.DataFrame(index=range(hNt.shape[0]), columns=['bg{}'.format(i) for i in range(1,14)])
@@ -192,7 +192,7 @@ for k, v in outDict.items():
     if len(v) > 1:
         throwOut.append(k)
 
-new_FG = reduced_data_FG.drop(reduced_data_FG.index[throwOut]).reset_index(drop = True)
+new_FG = new_FG.drop(reduced_data_FG.index[throwOut]).reset_index(drop = True)
 
 pk.dump(new_FG, open('pickle_files/training_data.pd.pk', 'wb'))
 
@@ -214,12 +214,9 @@ plt.show()
 
 # generate pairplot of foreground haralick PCA components 1-3
 test_FG = test_FG.sort_values(by='breed')
-g = sns.PairGrid(test_FG[['Dim{}'.format(i) for i in range(1,5)] + ['breed']], hue='breed')
+g = sns.PairGrid(test_FG[['Dim{}'.format(i) for i in range(1,4)] + ['breed']], hue='breed')
 g = g.map_diag(sns.kdeplot)
 g = g.map_upper(plt.scatter)
 g = g.map_lower(sns.kdeplot, cmap='Blues_d')
 g.add_legend()
 plt.show()
-
-
-
