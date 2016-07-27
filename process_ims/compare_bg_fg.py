@@ -16,11 +16,6 @@ from mahotas.features import haralick
 import threading
 plt.style.use('seaborn-dark')
 
-mainImPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
-
-bb = pk.load(open('pickle_files/pDogs-bounding-boxes-clean.pd.pk', 'rb'))
-bb.dropna(inplace=True)
-
 def make_fg_bg_hist_plot(fg, bg):
     # make a plot comparing color histograms of foreground to background
     f, axarr = plt.subplots(2, 2)
@@ -140,7 +135,13 @@ def do_analysis(i, breed):
     pk.dump(histNtext, open('pickle_files/histNtext.pd.pk', 'wb'))
     pbar.update(i)
 
-widgets = ["Comparing: ", progressbar.Percentage(), " ", progressbar.Bar(), " ", progressbar.ETA()]
+
+mainImPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
+
+bb = pk.load(open('pickle_files/pDogs-bounding-boxes-clean.pd.pk', 'rb'))
+bb.dropna(inplace=True)
+
+widgets = ["Calculating Haralick features: ", progressbar.Percentage(), " ", progressbar.Bar(), " ", progressbar.ETA()]
 pbar = progressbar.ProgressBar(maxval=bb.shape[0], widgets=widgets).start()
 
 rowCnt = 0
