@@ -1,0 +1,41 @@
+process flows:
+
+first time through:
+
+scrapy -- command scrapy crawl akc -o output.json
+google-images
+get_bounding_boxes_of_dogs.py
+get_bounding_boxes_of_dogs-even-out-population.py
+clean_bbs.py
+grabcut_ims.py
+compare_bg_fg.py -- extracts haralick features and color histograms
+analyze_haralick_n_color_hists.py
+train_svm.py
+
+
+separate analysis:
+compare_good_bad.py
+analyze_im_shapes.py
+check_bounding_boxes.py
+random_guess_benchmark.py
+test_rect_grid.py
+
+second time through, using 13-dim haralick:
+
+scrapy
+google-images
+get_bounding_boxes_of_dogs.py
+get_bounding_boxes_of_dogs-even-out-population.py
+clean_bbs.py
+grabcut_ims.py
+extract_haralick_fg.py -- extracts haralick features of foreground
+analyze_haralick.py
+train_svm.py
+
+
+separate analysis:
+compare_good_bad.py
+analyze_im_shapes.py
+check_bounding_boxes.py
+random_guess_benchmark.py
+test_rect_grid.py
