@@ -8,13 +8,13 @@ This project was developed and tested on Ubuntu 16.04 LTS.
 This assumes you already have Python 2.7 and pip installed.
 
 You will need the following packages installed to work through this project:
-*Scrapy (for scraping akc.org for a list of breed names and pics)
-*mahotas (for calculating Haralick textures)
-*imutils (image operations convenience functions)
-*seaborn (for making nifty plots)
-*pandas (for data operations)
-*scikit-learn (machine learning library)
-*progressbar (for showing eta and % completion of tasks)
+* Scrapy (for scraping akc.org for a list of breed names and pics)
+* mahotas (for calculating Haralick textures)
+* imutils (image operations convenience functions)
+* seaborn (for making nifty plots)
+* pandas (for data operations)
+* scikit-learn (machine learning library)
+* progressbar (for showing eta and % completion of tasks)
 
 These can be installed with the 'install_py_modules.py' script.
 
