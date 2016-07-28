@@ -9,6 +9,12 @@
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
 import logging
+import json
+
+with open('config.json', 'rb') as f:
+    config = json.load(f)
+
+mainImPath = config['image_dir']
 
 BOT_NAME = 'scrape_dogs'
 
@@ -73,7 +79,7 @@ ROBOTSTXT_OBEY = True
 #}
 ITEM_PIPELINES = {'scrape_dogs.pipelines.DogImagePipeline': 1}
 
-IMAGES_STORE = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
+IMAGES_STORE = mainImPath
 
 IMAGES_EXPIRES = 100 # don't download new images unless it's been x days since last dl
 
