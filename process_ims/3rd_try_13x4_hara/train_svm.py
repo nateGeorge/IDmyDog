@@ -9,11 +9,12 @@ from sklearn.grid_search import GridSearchCV
 training_data1 = pk.load(open('pickle_files/fgHara-full-13x4.pd.pk', 'rb'))
 training_data2 = pk.load(open('pickle_files/fgHara-full-13x4-new-new-new.pd.pk', 'rb'))
 training_data = training_data1.append(training_data2)
+training_data.reset_index(inplace=True, drop=True)
 
 data = []
 for i in range(training_data.shape[0]):
     # only use the first 3 components
-    data.append([i for i in training_data.iloc[i].fgHaralick.flatten()])
+    data.append(training_data.iloc[i].fgHaralick.flatten())
 
 labels = training_data.breed
 
@@ -30,7 +31,6 @@ model = GridSearchCV(clf, params, cv=3)
 model.fit(data, labels)
 print("[INFO] best hyperparameters: {}".format(model.best_params_))
 # best parameters so far were found to be
-model = SVC(kernel='rbf', C=10.0, gamma=0.5, random_state=42)
 model.fit(X_train, y_train)
 
 model.score(X_test, y_test)
