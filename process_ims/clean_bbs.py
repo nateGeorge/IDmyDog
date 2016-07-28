@@ -4,11 +4,18 @@ import cv2
 import os
 import pickle as pk
 import numpy as np
+import json
 
-bb = pk.load(open('pickle_files/pDogs-bounding-boxes.pd.pk', 'rb'))
+# load configuration
+with open('../config.json', 'rb') as f:
+    config = json.load(f)
+
+mainImPath = config['image_dir']
+pDir = config['pickle_dir']
+
+bb = pk.load(open(pDir + 'pDogs-bounding-boxes.pd.pk', 'rb'))
 bb.dropna(inplace=True)
 toDrop = []
-
 
 for i in range(bb.shape[0]):
     # check if any bounding boxes are small (accidental click)
@@ -100,4 +107,4 @@ for i in range(bb.shape[0]):
         toDrop.append(i)
 
 bb.drop(bb.index[toDrop], inplace=True)
-pk.dump(bb, open('pickle_files/pDogs-bounding-boxes-clean.pd.pk', 'wb'), protocol=2)
+pk.dump(bb, open(pDir + '/pDogs-bounding-boxes-clean.pd.pk', 'wb'), protocol=2)

@@ -6,38 +6,7 @@ import pandas as pd
 import random
 import pickle as pk
 import re
-
-
-image = None
-mainImPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
-breeds = sorted(os.listdir(mainImPath))
-breeds.remove('full')
-breeds.remove('test')
-
-# takes a long time to load the files--try to load from pickle if can
-try:
-    pDogs = pk.load(open('pickle_files/pDogs.pd.pk', 'rb'))
-except IOError:
-    pDogs = pd.DataFrame(columns=['breed','path','bodies','heads'])
-    for breed in breeds:
-        breedFolder = mainImPath + breed
-        pics = os.listdir(breedFolder)
-        for pic in pics:
-            if os.path.isfile(breedFolder + '/' + pic):
-                pDogs = pDogs.append({'breed':breed, 'path':breedFolder + '/' + pic}, ignore_index=True)
-                '''if image == None:
-                    image = cv2.imread(breedFolder + '/' + pic)
-                    clone = image.copy()*/'''
-    pk.dump(pDogs, open('pickle_files/pDogs.pd.pk', 'wb'))
-
-pDogs = pk.load(open('pickle_files/pDogs-bounding-boxes.pd.pk', 'rb'))
-bb = pDogs.dropna()
-# this section is for loading data that has only been partially populated
-'''
-loadedBreeds = sorted(bb.breed.unique())
-lastbreed = loadedBreeds[-1]
-breedCnt = breeds.index(lastbreed) + 1
-'''
+import json
 
 def loadIm(breed, randPic=False):
     # loads image from dataset
@@ -119,7 +88,6 @@ def sortPics():
     sortedPics = [pics[i] for i in picsIdxs]
     pics = [akcPic] + sortedPics
 
-refPt = []
 def getBBs(event, x, y, flags, param):
     # takes BGR CV2 image as an input
     # displays image and waits for
@@ -142,10 +110,50 @@ def getBBs(event, x, y, flags, param):
         cv2.rectangle(image, refPt[0], refPt[1], (0, 255, 0), 2)
         cv2.imshow("image", image)
 
+# load configuration
+with open('../config.json', 'rb') as f:
+    config = json.load(f)
+
+mainImPath = config['image_dir']
+pDir = config['pickle_dir']
+
+refPt = []
+image = None
+
+breeds = sorted(os.listdir(mainImPath))
+breeds.remove('full') # folder generated from Scrapy
+breeds.remove('test') # I think I made this folder
+
+# takes a long time to read in images--try to load from pickle if can
+try:
+    pDogs = pk.load(open(pDir + 'pDogs.pd.pk', 'rb'))
+except IOError:
+    pDogs = pd.DataFrame(columns=['breed', 'path', 'bodies', 'heads'])
+    for breed in breeds:
+        breedFolder = mainImPath + breed
+        pics = os.listdir(breedFolder)
+        for pic in pics:
+            if os.path.isfile(breedFolder + '/' + pic):
+                pDogs = pDogs.append({'breed':breed, 'path':breedFolder + '/' + pic}, ignore_index=True)
+    
+    pk.dump(pDogs, open(pDir + 'pDogs.pd.pk', 'wb'))
+
+pDogs = pk.load(open(pDir + 'pDogs-bounding-boxes.pd.pk', 'rb'))
+bb = pDogs.dropna()
+
+breedCnt = 0
+
+# this section is for loading data that has only been partially populated
+# uncomment if you partially went through and haven't finished
+'''
+loadedBreeds = sorted(bb.breed.unique())
+lastbreed = loadedBreeds[-1]
+breedCnt = breeds.index(lastbreed) + 1
+'''
+
 cv2.namedWindow("image")
 cv2.setMouseCallback("image", getBBs)
 
-#breedCnt = 0
 imCnt = 0
 breed = breeds[breedCnt]
 print('breed:', breed)
@@ -164,7 +172,7 @@ while True:
     key = cv2.waitKey(1) & 0xFF
     
     '''
-    # debugging
+    # for debugging
     if key!=255:
         print(key)
     '''
@@ -192,13 +200,11 @@ while True:
     
     # if the 'n' key is pressed, go to random dog pic
     if key == ord('n'):
-        print(appendDict)
         field, appendDict = writeROIs(appendDict, imPath)
-        print(appendDict)
         image, clone, imPath = nextIm(randPic=True)
         cv2.imshow("image", image)
     
-    # if fwd arrow pressed go to next in order pic
+    # if fwd (right) arrow pressed go to next in order pic
     if key == 83:
         field, appendDict = writeROIs(appendDict, imPath)
         image, clone, imPath = nextIm(dir='fwd')
@@ -212,10 +218,8 @@ while True:
     # if the 'd' key is pressed, go to next breed
     # and load next pic
     if key == ord('d'):
-        pk.dump(pDogs, open('pickle_files/pDogs-bounding-boxes.pd.pk', 'wb'))
-        print(appendDict)
+        pk.dump(pDogs, open(pDir + 'pDogs-bounding-boxes.pd.pk', 'wb'))
         field, appendDict = writeROIs(appendDict, imPath)
-        print(appendDict)
         breedCnt += 1
         if breedCnt >= len(breeds):
             print('reached end of breeds')
@@ -224,11 +228,11 @@ while True:
         sortPics()
         print('breed: ', breed)
         image, clone, imPath = nextIm(newBreed=True)
-        cv2.imshow("image", image)
+        cv2.imshow('image', image)
     
     # if the 'q' key is pressed, break from the loop
     elif key == ord('q'):
         appendDict = writeROIs(appendDict, imPath)
         break
 
-pk.dump(pDogs, open('pickle_files/pDogs-bounding-boxes.pd.pk', 'wb'))
+pk.dump(pDogs, open(pDir + 'pDogs-bounding-boxes.pd.pk', 'wb'))

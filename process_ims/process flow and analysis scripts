@@ -8,7 +8,7 @@ get_bounding_boxes_of_dogs.py
 get_bounding_boxes_of_dogs-even-out-population.py
 clean_bbs.py
 grabcut_ims.py
-compare_bg_fg.py -- extracts haralick features and color histograms
+get_haralick_n_chists.py -- extracts haralick features and color histograms
 analyze_haralick_n_color_hists.py
 train_svm.py
 

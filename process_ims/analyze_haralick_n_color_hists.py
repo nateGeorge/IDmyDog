@@ -3,6 +3,7 @@ from sklearn.decomposition import PCA
 import pandas as pd
 import pickle as pk
 import re
+import json
 import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,7 +20,7 @@ def show_examples(idxs, printStd=True):
         a = hNt.iloc[idx]
         xs.append(x)
         hara.append(np.log(abs(a.fgHaralick)))
-        breed.append([a.breed]*13)
+        breed.append([a.breed] * 13)
         
         if printStd:
             print('breed:', a.breed)
@@ -83,15 +84,21 @@ def getOutliers(df):
     
     return sorted(list(set(outliers))), zip(outliers, feats), outlierDict
 
-histNtext = pk.load(open('pickle_files/histNtext.pd.pk', 'rb'))
+# load configuration
+with open('../config.json', 'rb') as f:
+    config = json.load(f)
+
+mainImPath = config['image_dir']
+pDir = config['pickle_dir']
+
+histNtext = pk.load(open(pDir + 'histNtext.pd.pk', 'rb'))
 histNtext.reset_index(inplace=True)
 
-bb = pk.load(open('pickle_files/pDogs-bounding-boxes-clean.pd.pk', 'rb'))
+bb = pk.load(open(pDir + 'pDogs-bounding-boxes-clean.pd.pk', 'rb'))
 bb.dropna(inplace=True)
 bb.reset_index(inplace=True)
 
 # make column of just filename in breed/bounding box DF
-mainImPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
 files = []
 for i in range(bb.shape[0]):
     imName = bb.iloc[i].path.split('/')[-1]
@@ -194,7 +201,7 @@ for k, v in outDict.items():
 
 new_FG = new_FG.drop(reduced_data_FG.index[throwOut]).reset_index(drop = True)
 
-pk.dump(new_FG, open('pickle_files/training_data.pd.pk', 'wb'))
+pk.dump(new_FG, open(pDir + 'training_data.pd.pk', 'wb'))
 
 # examine a subset of the data
 testBreeds = ['Affenpinscher', 'Afghan Hound', 'Norwegian Buhund', 'Czechoslovakian Vlcak', 'Boxer', 'Dogue de Bordeaux']

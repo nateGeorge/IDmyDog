@@ -5,8 +5,15 @@ from __future__ import print_function
 import cv2
 import os
 import pickle as pk
+import json
 
-pDogs = pk.load(open('pickle_files/pDogs-bounding-boxes-clean.pd.pk', 'rb'))
+with open('../config.json', 'rb') as f:
+    config = json.load(f)
+
+mainImPath = config['image_dir']
+pDir = config['pickle_dir']
+
+pDogs = pk.load(open(pDir + 'pDogs-bounding-boxes-clean.pd.pk', 'rb'))
 bb = pDogs.dropna()
 
 for i in range(bb.shape[0]):
