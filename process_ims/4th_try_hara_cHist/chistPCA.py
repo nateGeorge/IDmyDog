@@ -1,3 +1,4 @@
+# does PCA on color histograms
 from __future__ import print_function
 from sklearn.decomposition import PCA
 import pandas as pd
