@@ -52,9 +52,12 @@ for i in range(startIm, bb.shape[0]):
         pass
     entry = bb.iloc[i]
     gcDir = mainImPath + entry.breed + '/grabcut/'
-    # make directory if needed
+    # make fg and bg directory if needed
     if not os.path.isdir(gcDir):
-        os.makedirs(gcDir)
+            os.makedirs(gcDir)
+    for dd in ['fg/', 'bg/']:
+        if not os.path.isdir(gcDir + dd):
+            os.makedirs(gcDir + dd)
     
     # get filename of image
     imName = entry.path.split('/')[-1]
@@ -102,7 +105,7 @@ for i in range(startIm, bb.shape[0]):
         background = cv2.merge((b_channel, g_channel, r_channel, a_channel_bg))
         #cv2.imshow('fg', foreground) # for debugging
         #cv2.imshow('bg', background)
-        cv2.imwrite(gcDir + imName + '.png', foreground)
-        cv2.imwrite(gcDir + imName + '.png', background)
+        cv2.imwrite(gcDir + 'fg/' + imName + '.png', foreground)
+        cv2.imwrite(gcDir + 'bg/' + imName + '.png', background)
 
 pbar.finish()
