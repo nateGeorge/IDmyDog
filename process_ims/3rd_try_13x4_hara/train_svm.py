@@ -6,10 +6,7 @@ from sklearn.metrics import classification_report
 from sklearn.grid_search import GridSearchCV
 
 # load training data
-training_data1 = pk.load(open('pickle_files/fgHara-full-13x4.pd.pk', 'rb'))
-training_data2 = pk.load(open('pickle_files/fgHara-full-13x4-new-new-new.pd.pk', 'rb'))
-training_data = training_data1.append(training_data2)
-training_data.reset_index(inplace=True, drop=True)
+training_data = pk.load(open('pickle_files/fgHara-full-13x4.pd.pk', 'rb'))
 
 data = []
 for i in range(training_data.shape[0]):

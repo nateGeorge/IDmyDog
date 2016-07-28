@@ -7,7 +7,7 @@ This project was developed and tested on Ubuntu 16.04 LTS.
 ### Install Python packages
 This assumes you already have Python 2.7 and pip installed.
 
-You will need the following packages installed to work through this project:
+You will need the following pPython ackages installed to work through this project:
 * Scrapy (for scraping akc.org for a list of breed names and pics)
 * mahotas (for calculating Haralick textures)
 * imutils (image operations convenience functions)
@@ -29,7 +29,7 @@ Change the values of 'pickle_dir' and 'image_dir' in the file 'config.json' to t
 ## Running the project
 I ran all my Python scripts from a terminal, as `python2 script.py` since I have Python 2 and Python 3 both installed in my system, and `python script.py` runs Python 3.
 
-If you don't want to re-run the image scraping, you can unzip the 'scrape-ims/images.zip' file in the 'scrape-ims' directory.  If you don't want to do all the work of outlining the dogs, or other steps of the project, you can unzip the 'process_ims/pickles.zip' file in the 'process_ims' directory, which contains all the pickled databases of bounding boxes, features, and the final classifier.
+If you don't want to do all the work of outlining the dogs, or other steps of the project, you can unzip the 'process_ims/pickles.tar.bz' file in the 'process_ims' directory, which contains all the pickled databases of bounding boxes, features, and the final classifier.
 
 ### Scraping images and breed names
 #### Running Scrapy
