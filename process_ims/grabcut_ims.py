@@ -74,7 +74,10 @@ for i in range(startIm, bb.shape[0]):
         imName = imName[:-1]
     
     #print(imName) # for debugging
-    image = cv2.imread(entry.path)
+    try:
+        image = cv2.imread(entry.path)
+    except:
+        continue
     orig = image.copy()
     bods = entry.bodies
     # only working now for single rectangle

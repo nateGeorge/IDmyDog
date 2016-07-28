@@ -4,13 +4,21 @@ import cv2
 import os
 import pandas as pd
 import pickle
+import json
 import mahotas as mh
 import matplotlib.pyplot as plt
 plt.style.use('seaborn-dark')
 
+# load configuration
+with open('../config.json', 'rb') as f:
+    config = json.load(f)
+
+mainImPath = config['image_dir']
+pDir = config['pickle_dir']
+
 # load hand-picked good images in 'train' folders 
 try:
-    breed_ims_good = pickle.load(open('pickle_files/breed_ims-aff-afg-good.pd.pk', 'rb'))
+    breed_ims_good = pickle.load(open(pDir + 'breed_ims-aff-afg-good.pd.pk', 'rb'))
 except IOError:
     imPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
     breeds = os.listdir(imPath)[:2] # only use the first two breeds for now
@@ -34,13 +42,13 @@ except IOError:
     
     breed_ims_good = pd.DataFrame(pdDict)
     
-    pickle.dump(breed_ims_good, open('pickle_files/breed_ims-aff-afg-good.pd.pk', 'wb'))
+    pickle.dump(breed_ims_good, open(pDir + 'breed_ims-aff-afg-good.pd.pk', 'wb'))
 
 # load hand-picked bad images in 'complex' folders
 try:
-    breed_ims_bad = pickle.load(open('pickle_files/breed_ims-aff-afg-bad.pd.pk', 'rb'))
+    breed_ims_bad = pickle.load(open(pDir + 'breed_ims-aff-afg-bad.pd.pk', 'rb'))
 except IOError:
-    imPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
+    imPath = mainImPath
     breeds = os.listdir(imPath)[:2] # only use the first two breeds for now
     print(breeds)   
     
@@ -62,7 +70,7 @@ except IOError:
     
     breed_ims_bad = pd.DataFrame(pdDict)
     
-    pickle.dump(breed_ims_bad, open('pickle_files/breed_ims-aff-afg-bad.pd.pk', 'wb'))
+    pickle.dump(breed_ims_bad, open(pDir + 'breed_ims-aff-afg-bad.pd.pk', 'wb'))
 
 def plot_good_n_bad():
     # get example color histograms of good and bad images

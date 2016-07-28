@@ -3,6 +3,7 @@ from sklearn.decomposition import PCA
 import pandas as pd
 import pickle as pk
 import re
+import json
 import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
@@ -83,15 +84,21 @@ def getOutliers(df):
     
     return sorted(list(set(outliers))), zip(outliers, feats), outlierDict
 
-histNtext = pk.load(open('../pickle_files/histNtext.pd.pk', 'rb'))
+# load configuration
+with open('../config.json', 'rb') as f:
+    config = json.load(f)
+
+mainImPath = config['image_dir']
+pDir = config['pickle_dir']
+
+histNtext = pk.load(open(pDir + 'histNtext.pd.pk', 'rb'))
 histNtext.reset_index(inplace=True)
 
-bb = pk.load(open('../pickle_files/pDogs-bounding-boxes-clean.pd.pk', 'rb'))
+bb = pk.load(open(pDir + 'pDogs-bounding-boxes-clean.pd.pk', 'rb'))
 bb.dropna(inplace=True)
 bb.reset_index(inplace=True)
 
 # make column of just filename in breed/bounding box DF
-mainImPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
 files = []
 for i in range(bb.shape[0]):
     imName = bb.iloc[i].path.split('/')[-1]
@@ -121,11 +128,11 @@ hNt.drop('index', 1, inplace=True)
 hNt.reset_index(inplace=True)
 
 # uncomment to show examples:
-#show_examples([100, 515, 780])
-#show_examples([0, 10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 500, 515, 600, 780, 1000, 1200, 1300], printStd=False)
+show_examples([100, 515, 780])
+show_examples([0, 10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 500, 515, 600, 780, 1000, 1200, 1300], printStd=False)
 
 # uncomment to plot foreground haralick standard deviations
-#get_hara_stats(hNt)
+get_hara_stats(hNt)
 
 # make dataframes with each component of haralick texture as a column
 fgHDF = pd.DataFrame(index=range(hNt.shape[0]), columns=['breed'] + ['fg{}'.format(i) for i in range(1,14)])
@@ -135,7 +142,7 @@ for i in range(hNt.shape[0]):
         fgHDF.iloc[i,j + 1] = np.log(abs(hNt.iloc[i]['fgHaralick'][j]))
     fgHDF.iloc[i, 0] = hNt.iloc[i].breed
 
-pk.dump(fgHDF, open('../pickle_files/fgHDF-full.pd.pk', 'wb'))
+pk.dump(fgHDF, open(pDir + 'fgHDF-full.pd.pk', 'wb'))
 exit()
 
 '''

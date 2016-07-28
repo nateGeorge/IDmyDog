@@ -94,6 +94,8 @@ pDir = config['pickle_dir']
 histNtext = pk.load(open(pDir + 'histNtext.pd.pk', 'rb'))
 histNtext.reset_index(inplace=True)
 
+# This section was necessary when I forgot to add in the breed information
+# the first time working through this.  It shouldn't be necessary now.
 bb = pk.load(open(pDir + 'pDogs-bounding-boxes-clean.pd.pk', 'rb'))
 bb.dropna(inplace=True)
 bb.reset_index(inplace=True)
@@ -121,6 +123,7 @@ for i in range(histNtext.shape[0]):
     files.append(histNtext.iloc[i].file[:-4])
 
 histNtext['raw_file_name'] = pd.Series(files)
+
 
 # add breed info to histNtext DF
 hNt = histNtext.merge(bb[['breed', 'raw_file_name']], on='raw_file_name')

@@ -153,7 +153,6 @@ pbar = progressbar.ProgressBar(maxval=bb.shape[0], widgets=widgets).start()
 rowCnt = 0
 histNtext = pd.DataFrame(columns=['breed', 'file', 'fgHaralick', 'bgHaralick', 'fgHist', 'bgHist'])
 
-threads = []
 for i, breed in enumerate(sorted(bb.breed.unique().tolist())):
     do_analysis(i, breed)
 
