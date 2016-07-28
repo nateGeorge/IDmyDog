@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>Oops, servers overloaded</title>
+<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<style type="text/css">
+body {
+	background: #f7f7ef url('/wp-content/themes/blogcom_portal_10/images/error-502-bg.png') top center no-repeat;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 16px;
+	color: #333;
+}
+h1 {
+	width: 53px;
+	font-size: 32px;
+	font-weight: normal;
+	border-bottom: 2px solid #c4c3be;
+	color: #c4c3be;
+	margin: 0 auto 0 auto;
+	margin-bottom: 30px;
+}
+p {
+	line-height: 1.3em;
+}
+.content {
+	width: 460px;
+	margin: 265px auto 0 auto;
+	text-align: center;
+}
+</style>
+</head>
+<body>
+	<div class="content">
+		<h1>504</h1>
+		<p>Unfortunately our servers look a bit busier than usual.<br />Our crew is already helping them recover.</p>
+		<p>Meanwhile, please try refreshing the page.</p>
+	</div>
+</body>
+</html>
