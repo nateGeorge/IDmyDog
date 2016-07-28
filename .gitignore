@@ -2,5 +2,4 @@
 *.pk
 *.pyc
 figures/
-images/
 pickle_files/
