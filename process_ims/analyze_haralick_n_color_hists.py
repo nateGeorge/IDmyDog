@@ -93,6 +93,7 @@ pDir = config['pickle_dir']
 
 histNtext = pk.load(open(pDir + 'histNtext-fg+bg.pd.pk', 'rb'))
 histNtext.reset_index(inplace=True)
+hNt = histNtext
 
 # This section was necessary when I forgot to add in the breed information
 # the first time working through this.  It shouldn't be necessary now.
