@@ -15,7 +15,7 @@ was:
 ### Install Python packages
 This assumes you already have Python 2.7 and pip installed.
 
-You will need the following pPython ackages installed to work through this project:
+You will need the following Python packages installed to work through this project:
 * Scrapy (for scraping akc.org for a list of breed names and pics)
 * mahotas (for calculating Haralick textures)
 * imutils (image operations convenience functions)
@@ -35,7 +35,7 @@ I have provided the install_cv2.sh file, which can be run in a Linux environent 
 Change the values of 'pickle_dir' and 'image_dir' in the file 'config.json' to the appropriate directory on your system.
 
 ## Running the project
-I ran all my Python scripts from a terminal, as `python2 script.py` since I have Python 2 and Python 3 both installed in my system, and `python script.py` runs Python 3.
+I ran most of my code from within a Python shell in a terminal.  I tested most of my Python scripts from a terminal, as `python2 script.py` since I have Python 2 and Python 3 both installed in my system, and `python script.py` runs Python 3.
 
 If you don't want to do all the work of outlining the dogs, or other steps of the project, you can unzip the 'process_ims/pickles.tar.bz' file in the 'process_ims' directory, which contains all the pickled databases of bounding boxes, features, and the final classifier.
 
@@ -63,15 +63,15 @@ You can then run `nodejs scrape_google_dogs.js` from the scrape_ims folder.
 ### Pre-processing the images
 #### Overview
 ##### Preparing Images
-* get_bounding_boxes_of_dogs.py -- enables drawing rectangles around dogs in images
+* get_bounding_boxes_of_dogs.py -- enables drawing rectangles around dogs in images -- WARNING: this task takes a long time to complete
 * get_bounding_boxes_of_dogs-even-out-population.py -- enables drawing rectangles around dogs in images, helps to balance out classes 
 * clean_bbs.py -- removes bounding boxes from accidental clicks
-* grabcut_ims.py -- uses OpenCV grabCut() to segment dog from background
+* grabcut_ims.py -- uses OpenCV grabCut() to segment dog from background -- WARNING: this script takes hours to complete
 
 ##### Extracting Features
-* get_haralick_n_chists.py -- extracts 13-dim Haralick texture and color histogram from fore- and background of images
+* get_haralick_n_chists.py -- extracts 13-dim Haralick texture and color histogram from fore- and background of images -- WARNING: this script takes hours to complete
 * analyze_haralick_n_color_hists.py -- performs PCA on Haralick, does some analysis on PCA and color histograms
-* extract_haralick_fg-multicore.py -- extracts full 13x4-dim Haralick textures from the foreground of images
+* extract_haralick_fg-multicore.py -- extracts full 13x4-dim Haralick textures from the foreground of images -- WARNING: this script takes hours to complete
 * extract_chists_fg-linear.py -- extracts color histograms from the foreground of images
 
 #### Draw rectangles around dogs
