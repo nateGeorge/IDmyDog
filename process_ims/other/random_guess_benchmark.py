@@ -16,7 +16,7 @@ mainImPath = config['image_dir']
 pDir = config['pickle_dir']
 
 # load training data
-training_data = pk.load(open(pDir + 'training_data.pd.pk', 'rb'))
+training_data = pk.load(open(pDir + 'histNtext-fg+bg.pd.pk', 'rb'))
 
 Tdata = training_data.drop('breed', 1)
 data = []
@@ -57,7 +57,7 @@ for each in threads:
     each.join()
 
 print('took', time.time()-start, 'seconds with multithreading')
-print(np.mean(scores)) # comes out around 2
+print('expected correct predictions from random guessing:', np.mean(scores)) # comes out around 2
 
 start = time.time()
 scores = []
@@ -72,3 +72,4 @@ for i in range(1000):
     scores.append(score)
 
 print('took', time.time()-start, 'seconds without multithreading') # faster without multithreading...don't understand
+print('expected correct predictions from random guessing:', np.mean(scores))
