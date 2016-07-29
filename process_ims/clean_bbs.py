@@ -107,4 +107,4 @@ for i in range(bb.shape[0]):
         toDrop.append(i)
 
 bb.drop(bb.index[toDrop], inplace=True)
-pk.dump(bb, open(pDir + '/pDogs-bounding-boxes-clean.pd.pk', 'wb'), protocol=2)
+pk.dump(bb, open(pDir + 'pDogs-bounding-boxes-clean.pd.pk', 'wb'), protocol=2)

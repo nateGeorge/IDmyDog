@@ -99,8 +99,8 @@ for i in range(startIm, bb.shape[0]):
         
         # make images with alpha channel
         b_channel, g_channel, r_channel = cv2.split(orig)
-        # if probably background (2) or background (0), set to opaque (0)
-        # otherwise set to transparent (255)
+        # if probably background (2) or background (0), set to trasparent (0)
+        # otherwise make opaque (255)
         a_channel = np.where((mask==2)|(mask==0), 0, 255).astype('uint8')
         foreground = cv2.merge((b_channel, g_channel, r_channel, a_channel))
         # same idea for background, just inverted

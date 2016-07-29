@@ -18,7 +18,8 @@ function getDirectories(srcpath) {
   });
 }
 
-var dirs = getDirectories('/media/nate/Windows/github/IDmyDog/scrape-ims/images')
+var configSettings = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+var dirs = getDirectories(configSettings['image_dir'])
 
 dirs.pop('full')
 

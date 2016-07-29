@@ -91,44 +91,47 @@ with open('../config.json', 'rb') as f:
 mainImPath = config['image_dir']
 pDir = config['pickle_dir']
 
-histNtext = pk.load(open(pDir + 'histNtext.pd.pk', 'rb'))
+histNtext = pk.load(open(pDir + 'histNtext-fg+bg.pd.pk', 'rb'))
 histNtext.reset_index(inplace=True)
 
 # This section was necessary when I forgot to add in the breed information
 # the first time working through this.  It shouldn't be necessary now.
-bb = pk.load(open(pDir + 'pDogs-bounding-boxes-clean.pd.pk', 'rb'))
-bb.dropna(inplace=True)
-bb.reset_index(inplace=True)
+if 'breed' not in histNtext.columns:
+    bb = pk.load(open(pDir + 'pDogs-bounding-boxes-clean.pd.pk', 'rb'))
+    bb.dropna(inplace=True)
+    bb.reset_index(inplace=True)
 
-# make column of just filename in breed/bounding box DF
-files = []
-for i in range(bb.shape[0]):
-    imName = bb.iloc[i].path.split('/')[-1]
-    sb = re.search('St. Bernard', imName)
-    ext = re.search('\.\w', imName)
-    if ext:
-        if sb:
-            imName = ' '.join(imName.split('.')[0:2])
-        else:
-            imName = imName.split('.')[0]
-    elif imName[-1]=='.':
-        imName = imName[:-1]
-    files.append(imName)
+    # make column of just filename in breed/bounding box DF
+    files = []
+    for i in range(bb.shape[0]):
+        imName = bb.iloc[i].path.split('/')[-1]
+        sb = re.search('St. Bernard', imName)
+        ext = re.search('\.\w', imName)
+        if ext:
+            if sb:
+                imName = ' '.join(imName.split('.')[0:2])
+            else:
+                imName = imName.split('.')[0]
+        elif imName[-1]=='.':
+            imName = imName[:-1]
+        files.append(imName)
 
-bb['raw_file_name'] = pd.Series(files)
+    bb['raw_file_name'] = pd.Series(files)
 
-# add raw filename column to histogram and haralick texture DF
-files = []
-for i in range(histNtext.shape[0]):
-    files.append(histNtext.iloc[i].file[:-4])
+    # add raw filename column to histogram and haralick texture DF
+    files = []
+    for i in range(histNtext.shape[0]):
+        files.append(histNtext.iloc[i].file[:-4])
 
-histNtext['raw_file_name'] = pd.Series(files)
+    histNtext['raw_file_name'] = pd.Series(files)
 
-
-# add breed info to histNtext DF
-hNt = histNtext.merge(bb[['breed', 'raw_file_name']], on='raw_file_name')
-hNt.drop('index', 1, inplace=True)
-hNt.reset_index(inplace=True)
+    # add breed info to histNtext DF
+    hNt = histNtext.merge(bb[['breed', 'raw_file_name']], on='raw_file_name')
+    hNt.drop('index', 1, inplace=True)
+    hNt.reset_index(inplace=True)
+    hNt.drop('index', 1, inplace=True)
+    # save to pickle file so we don't have to do this again
+    pk.dump(hNt, open(pDir + 'histNtext-fg+bg.pd.pk', 'wb'))
 
 # uncomment to show examples:
 show_examples([100, 515, 780])
@@ -138,8 +141,8 @@ show_examples([0, 10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 5
 get_hara_stats(hNt)
 
 # make dataframes with each component of haralick texture as a column
-bgHDF = pd.DataFrame(index=range(hNt.shape[0]), columns=['bg{}'.format(i) for i in range(1,14)])
-fgHDF = pd.DataFrame(index=range(hNt.shape[0]), columns=['fg{}'.format(i) for i in range(1,14)])
+bgHDF = pd.DataFrame(index=range(hNt.shape[0]), columns=['bg{}'.format(i) for i in range(1,14)] + ['breed'])
+fgHDF = pd.DataFrame(index=range(hNt.shape[0]), columns=['fg{}'.format(i) for i in range(1,14)] + ['breed'])
 
 # transform the data by taking the log because it varies over orders of magnitude
 # also need to take absolute value because some values are negative
@@ -147,12 +150,14 @@ for i in range(hNt.shape[0]):
     for j in range(13):
         bgHDF.iloc[i,j] = np.log(abs(hNt.iloc[i]['bgHaralick'][j]))
         fgHDF.iloc[i,j] = np.log(abs(hNt.iloc[i]['fgHaralick'][j]))
+    bgHDF.iloc[i]['breed'] = hNt.iloc[i].breed
+    fgHDF.iloc[i]['breed'] = hNt.iloc[i].breed
 
 # fit PCA to the data
 pcaBG = PCA(n_components=6)
-pcaBG.fit(bgHDF)
+pcaBG.fit(bgHDF.drop('breed', 1))
 pcaFG = PCA(n_components=6)
-pcaFG.fit(fgHDF)
+pcaFG.fit(fgHDF.drop('breed', 1))
 varianceBG = pcaBG.explained_variance_ratio_
 varianceFG = pcaFG.explained_variance_ratio_
 print(varianceBG)
@@ -163,7 +168,7 @@ print('top 3 fg components:', varianceFG[:3].sum())
 print('top 4 fg components:', varianceFG[:4].sum())
 
 # save pcaFG fit for later use
-pk.dump(pcaFG, open('pickle_files/pcaFG.pk', 'wb'))
+pk.dump(pcaFG, open(pDir + 'pcaFG.pk', 'wb'))
 
 # plot cumulative distribution of PCA componenents
 serBG = pd.Series(varianceBG)
@@ -185,14 +190,19 @@ plt.show()
 
 
 # transform the data with our PCA
-reduced_data_BG = pd.DataFrame(pcaBG.transform(bgHDF), columns=['Dim{}'.format(i) for i in range(1,7)])
-reduced_data_FG = pd.DataFrame(pcaBG.transform(fgHDF), columns=['Dim{}'.format(i) for i in range(1,7)])
+reduced_data_BG = pd.DataFrame(np.hstack((pcaBG.transform(bgHDF.drop('breed', 1)), bgHDF.breed[:, np.newaxis])), 
+                               columns=['Dim{}'.format(i) for i in range(1,7)] + ['breed'])
+reduced_data_FG = pd.DataFrame(np.hstack((pcaBG.transform(fgHDF.drop('breed', 1)), fgHDF.breed[:, np.newaxis])), 
+                               columns=['Dim{}'.format(i) for i in range(1,7)] + ['breed'])
 
 # need an 'index' column to be able to merge with breed info
+# did this the first time through, shouldn't be necessary now
+'''
 reduced_data_BG.reset_index(inplace=True)
 new_BG = reduced_data_BG.merge(hNt[['index', 'breed']], on='index')
 reduced_data_FG.reset_index(inplace=True)
 new_FG = reduced_data_FG.merge(hNt[['index', 'breed']], on='index')
+'''
 
 # analyze outliers
 outliers, outFeats, outDict = getOutliers(reduced_data_FG)
@@ -202,19 +212,19 @@ for k, v in outDict.items():
     if len(v) > 1:
         throwOut.append(k)
 
-new_FG = new_FG.drop(reduced_data_FG.index[throwOut]).reset_index(drop = True)
+reduced_data_FG = reduced_data_FG.drop(reduced_data_FG.index[throwOut]).reset_index(drop = True)
 
-pk.dump(new_FG, open(pDir + 'training_data.pd.pk', 'wb'))
+pk.dump(reduced_data_FG, open(pDir + 'training_data-13dimHaraFG-PCA.pd.pk', 'wb'))
 
 # examine a subset of the data
 testBreeds = ['Affenpinscher', 'Afghan Hound', 'Norwegian Buhund', 'Czechoslovakian Vlcak', 'Boxer', 'Dogue de Bordeaux']
-test_BG = new_BG[new_BG.breed=='Lagotto Romagnolo']
+test_BG = reduced_data_BG[reduced_data_BG.breed=='Lagotto Romagnolo']
 for breed in testBreeds:
-    test_BG = test_BG.append(new_BG[new_BG.breed==breed])
+    test_BG = test_BG.append(reduced_data_BG[reduced_data_BG.breed==breed])
 
-test_FG = new_FG[new_FG.breed=='Lagotto Romagnolo']
+test_FG = reduced_data_FG[reduced_data_FG.breed=='Lagotto Romagnolo']
 for breed in testBreeds:
-    test_FG = test_FG.append(new_FG[new_FG.breed==breed])
+    test_FG = test_FG.append(reduced_data_FG[reduced_data_FG.breed==breed])
 
 sns.pairplot(test_BG[['Dim{}'.format(i) for i in range(1,4)] + ['breed']], hue='breed')
 plt.show()

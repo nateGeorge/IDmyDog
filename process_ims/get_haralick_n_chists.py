@@ -13,7 +13,7 @@ import imutils
 import numpy as np
 import matplotlib.pyplot as plt
 from mahotas.features import haralick
-import threading
+from multiprocessing import Pool
 import json
 plt.style.use('seaborn-dark')
 
@@ -100,7 +100,7 @@ def get_avg_hara(im, rects):
     hara = 0
     for r in rects:
         # slice images as: img[y0:y1, x0:x1]
-        hara += haralick(im[r[0][1]:r[1][1], r[0][0]:r[1][0]])
+        hara += haralick(im[r[0][1]:r[1][1], r[0][0]:r[1][0]]).mean(0)
     hara /= (len(rects))
     return hara
 
@@ -113,7 +113,11 @@ def do_analysis(i, breed):
 
     for fi in fgFiles:
         print(fi)
-        pbar.update(i)
+        try:
+            # just in case we have maxval wrong in the pbar
+            pbar.update(i)
+        except:
+            pass
         try:
             fg = cv2.imread(fgDir + fi, -1)
             bg = cv2.imread(bgDir + fi, -1) # -1 tells it to load alpha channel
@@ -127,6 +131,7 @@ def do_analysis(i, breed):
                 bg = imutils.resize(bg, width = 450)
             fgRects, bgRects = get_fg_bg_rects(fg)
             fgHara = get_avg_hara(fg, fgRects)
+            # to speed up the process, comment the following line--we don't use the bg for ML
             bgHara = get_avg_hara(bg, bgRects)
             fgHist, bgHist = get_fg_bg_color_hists(fg, bg)
             if None in [fgRects, bgRects, fgHara, bgHara]:
@@ -134,7 +139,7 @@ def do_analysis(i, breed):
             histNtext.loc[rowCnt] = [breed, fi, fgHara, bgHara, fgHist, bgHist]
             rowCnt += 1
     
-    pk.dump(histNtext, open(pDir + 'histNtext.pd.pk', 'wb'))
+    pk.dump(histNtext, open(pDir + 'histNtext-fg+bg.pd.pk', 'wb'))
     pbar.update(i)
 
 # load configuration
@@ -155,5 +160,9 @@ histNtext = pd.DataFrame(columns=['breed', 'file', 'fgHaralick', 'bgHaralick', '
 
 for i, breed in enumerate(sorted(bb.breed.unique().tolist())):
     do_analysis(i, breed)
+
+# to do this with multithreading, uncomment this
+#p = Pool(8)
+#p.map(do_analysis, list(sorted(bb.breed.unique().tolist())))
 
 pbar.finish()
