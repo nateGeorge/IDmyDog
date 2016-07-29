@@ -17,7 +17,7 @@ bb = pk.load(open(pDir + 'pDogs-bounding-boxes-clean.pd.pk', 'rb'))
 bb.dropna(inplace=True)
 
 for breed in sorted(bb.breed.unique().tolist()):
-    cropDir = mainImPath + breed + '/cropped/bodies/'
+    cropDir = mainImPath + breed + '/grabcut/'
     fgDir = cropDir + 'fg/'
     bgDir = cropDir + 'bg/'
     fgFiles = os.listdir(fgDir)
