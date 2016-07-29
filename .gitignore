@@ -1,5 +1,4 @@
 *.pd.pk
 *.pk
 *.pyc
-figures/
 pickle_files/
