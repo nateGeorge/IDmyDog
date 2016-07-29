@@ -123,8 +123,8 @@ Run 'process_ims/machine_learning.py' to see the performance of machine learning
 Run 'process_ims/check_robust.py' and 'process_ims/check_peturb.py' to check the model's performance on unseen data and it's sensitivity to noise.
 
 ### Other
-Run 'process_ims/other/compare_good_bad.py' to see a comparison of images with clean and noisy backgrounds.
-Run 'process_ims/other/check_bounding_boxes.py' to see the bounding boxes drawn on the images.
-Run 'process_ims/other/random_guess_benchmark.py' to check the validitiy of the random guess benchmark.
-Run 'process_ims/other/test_rect_grid.py' to see the rectangle grid drawn on the foregrounds and backgrounds.
-Run 'process_ims/other/2d_haralick_map.py' to see the 2d Haralick variation map drawn on the foregrounds.
+In the 'process_ims/other' folder:
+* check_bounding_boxes.py -- draws bounding boxes on the images
+* random_guess_benchmark.py -- checks validitiy of the random guess benchmark
+* test_rect_grid.py draws rectangle grid on foreground and background of images
+* 2d_haralick_map.py -- draws 2d Haralick variation map on image foregrounds
