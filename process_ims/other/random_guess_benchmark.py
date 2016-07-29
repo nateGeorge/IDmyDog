@@ -5,10 +5,18 @@ import numpy as np
 import time
 import random
 import threading
+import json
 from sklearn.cross_validation import train_test_split
 
+# load configuration
+with open('../../config.json', 'rb') as f:
+    config = json.load(f)
+
+mainImPath = config['image_dir']
+pDir = config['pickle_dir']
+
 # load training data
-training_data = pk.load(open('pickle_files/training_data.pd.pk', 'rb'))
+training_data = pk.load(open(pDir + 'training_data.pd.pk', 'rb'))
 
 Tdata = training_data.drop('breed', 1)
 data = []

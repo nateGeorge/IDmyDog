@@ -83,7 +83,7 @@ def make_hara_map(im, rects):
 
 
 # load configuration
-with open('../config.json', 'rb') as f:
+with open('../../config.json', 'rb') as f:
     config = json.load(f)
 
 mainImPath = config['image_dir']

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 plt.style.use('seaborn-dark')
 
 # load configuration
-with open('../config.json', 'rb') as f:
+with open('../../config.json', 'rb') as f:
     config = json.load(f)
 
 mainImPath = config['image_dir']

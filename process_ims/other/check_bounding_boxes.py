@@ -7,7 +7,7 @@ import os
 import pickle as pk
 import json
 
-with open('../config.json', 'rb') as f:
+with open('../../config.json', 'rb') as f:
     config = json.load(f)
 
 mainImPath = config['image_dir']

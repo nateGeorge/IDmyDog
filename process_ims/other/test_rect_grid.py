@@ -4,10 +4,16 @@ import cv2
 import pandas as pd
 import pickle as pk
 import os
+import json
 
-mainImPath = '/media/nate/Windows/github/IDmyDog/scrape-ims/images/'
+# load configuration
+with open('../../config.json', 'rb') as f:
+    config = json.load(f)
 
-bb = pk.load(open('pickle_files/pDogs-bounding-boxes-clean.pd.pk', 'rb'))
+mainImPath = config['image_dir']
+pDir = config['pickle_dir']
+
+bb = pk.load(open(pDir + 'pDogs-bounding-boxes-clean.pd.pk', 'rb'))
 bb.dropna(inplace=True)
 
 for breed in sorted(bb.breed.unique().tolist()):
@@ -18,7 +24,7 @@ for breed in sorted(bb.breed.unique().tolist()):
     
     for fi in fgFiles:
         print(fi)
-        if fi=='Affenpinscher1-2.png':
+        if fi=='Affenpinscher1-2.png': # change filename here to check others
             fg = cv2.imread(fgDir + fi, -1)
             bg = cv2.imread(bgDir + fi, -1)
             break
