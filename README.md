@@ -126,5 +126,5 @@ Run 'process_ims/check_robust.py' and 'process_ims/check_peturb.py' to check the
 In the 'process_ims/other' folder:
 * check_bounding_boxes.py -- draws bounding boxes on the images
 * random_guess_benchmark.py -- checks validitiy of the random guess benchmark
-* test_rect_grid.py draws rectangle grid on foreground and background of images
+* test_rect_grid.py -- draws rectangle grid on foreground and background of images
 * 2d_haralick_map.py -- draws 2d Haralick variation map on image foregrounds
