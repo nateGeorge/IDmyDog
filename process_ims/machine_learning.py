@@ -1,6 +1,7 @@
 from __future__ import print_function
 import pandas as pd
 import pickle as pk
+import numpy as np
 import json
 import cPickle
 from sklearn.svm import SVC
@@ -9,6 +10,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.grid_search import GridSearchCV
+import seaborn as sns
+import matplotlib.pyplot as plt
+plt.style.use('seaborn-dark')
 
 def get_score(model):
     predictions = model.predict(X_test)
@@ -42,6 +46,7 @@ for i in range(Tdata.shape[0]):
 labels = training_data.breed
 
 X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.33, stratify=labels, random_state=42)
+
 
 # first try of SVC
 clf = SVC(random_state=42)
@@ -300,10 +305,6 @@ print('[INFO] RandomForest score with max_depth = 50:')
 get_score(model)
 
 predictions = model.predict(X_test)
-
-for k,v in model2.get_params().items():
-    print(k, v)
-    print(model.estimator.get_params()[k])
 
 predDict = {}
 for breed in labels.unique():
