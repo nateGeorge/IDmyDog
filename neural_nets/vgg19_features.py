@@ -86,7 +86,7 @@ def test(timing=True):
 if __name__ == "__main__":
     print 'loading data'
     breeds, bb, mainImPath = load_everything()
-    model = create_model()
+    model = create_model() # creates VGG19 model with block4_pool_features out
     runtest = False
     if runtest:
         testFeat, runtime = test()
@@ -94,5 +94,5 @@ if __name__ == "__main__":
         print 'total expected size:', (testFeat.nbytes * bb.shape[0]) / 1000000000., 'GB'
         print 'total run time:', runtime * bb.shape[0] / 60, 'minutes'
 
-    files_all_feats = extract_all_feats()
-    pk.dump(files_all_feats, open('files_all_feats.pk', w), 2)
+    files, block4_pool_features = extract_all_feats()
+    pk.dump(block4_pool_features, open('block4_pool_features.pk', w), 2)
